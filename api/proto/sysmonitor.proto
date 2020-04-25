@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+//import "google/protobuf/timestamp.proto";
+//import "google/protobuf/duration.proto";
+
+package api;
+option go_package = "api";
+
+// запрос к серверу от клиента
+message Request {
+    // промежуток времени выдачи информации (в секундах) 
+    int32 timeout = 1;
+    // период времени за который выдавать информацию (в секундах)
+    int32 period = 2;
+}
+
+message SystemResponse {
+    // средняя загрузка системы
+    double system_load_value = 1;
+}
+
+// средняя загрузка CPU
+message CPUResponse {
+    int32 user_mode = 1;
+    int32 system_mode = 2;
+    int32 idle = 3;
+}
+
+message Result {
+    SystemResponse system_val = 1;
+    CPUResponse cpu_val = 2;
+}
+
+
+service Sysmonitor {    
+  rpc SysInfo(Request) returns (stream Result) {}   
+}

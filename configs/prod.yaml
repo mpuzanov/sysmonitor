@@ -1,0 +1,26 @@
+# Пример файла конфигурации для сервиса "Системный мониторинг"
+
+# Настройки логирования
+log: 
+  # уровень логирования (error / warn / info / debug)
+  level: debug
+  # путь к файлу логов
+  file: 
+  # формат логирования
+  format_JSON: true
+
+# Настройки grpc-сервера    
+# ip и port на котором должен работать gRPC-сервер
+grpc_listen: "0.0.0.0:50051"
+
+# Настройка подсистемы сбора статистики
+collector:
+    # Частота выполнения сбора статистики в секундах
+    timeout: 5
+    # виды сбора статистики: load_system, load_cpu, load_disk, top_talkers, stat_network
+    category:
+      - load_system
+      - load_cpu
+      - load_disk
+      - top_talkers
+      - stat_network
