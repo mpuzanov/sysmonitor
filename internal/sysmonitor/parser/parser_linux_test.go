@@ -8,7 +8,7 @@ import (
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/parser"
 )
 
-func TestParserSystemInfo(t *testing.T) {
+func TestParserSystemLoad(t *testing.T) {
 
 	testCases := []struct {
 		desc string
@@ -28,7 +28,7 @@ func TestParserSystemInfo(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			got, err := parser.ParserSystemInfo(tC.in)
+			got, err := parser.ParserSystemLoad(tC.in)
 			if err != nil {
 				t.Errorf("%s, got=%v, expected=%v, error: %v", tC.desc, got, tC.want, err)
 			}

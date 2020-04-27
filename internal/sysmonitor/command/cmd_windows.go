@@ -8,9 +8,9 @@ import (
 	"github.com/mpuzanov/sysmonitor/internal/utils"
 )
 
-// RunSystem Возвращает строку с информацией о загрузке системы
+// RunSystemLoad Возвращает строку с информацией о загрузке системы
 // Заглушка для ОС Windows
-func RunSystem() (int, string, string) {
+func RunSystemLoad() (int, string, string) {
 	var output, stderr string
 
 	// формируем случайное значение

@@ -59,15 +59,15 @@ func Start(conf *config.Config, logger *zap.Logger, smon *sysmonitor.SysMonitor)
 			logger: logger,
 			sysmon: smon,
 		}
-
-		lisn, err := net.Listen("tcp", s.cfg.GRPCAddr)
+		GRPCAddr := s.cfg.Host + ":" + s.cfg.Port
+		lisn, err := net.Listen("tcp", GRPCAddr)
 		if err != nil {
 			log.Fatalf("Cannot listen: %s\n", err)
 		}
 		grpcServer = grpc.NewServer()
 		api.RegisterSysmonitorServer(grpcServer, s)
-		log.Printf("Starting gRPC server %s, file log: %s\n", s.cfg.GRPCAddr, s.cfg.Log.File)
-		s.logger.Info("Starting gRPC server", zap.String("address", s.cfg.GRPCAddr))
+		log.Printf("Starting gRPC server %s, file log: %s\n", GRPCAddr, s.cfg.Log.File)
+		s.logger.Info("Starting gRPC server", zap.String("address", GRPCAddr))
 
 		if err := grpcServer.Serve(lisn); err != nil {
 			log.Fatalf("Cannot start gRPC server: %s\n", err)
@@ -108,19 +108,30 @@ func (s *GRPCServer) SysInfo(req *api.Request, stream api.Sysmonitor_SysInfoServ
 		case <-time.After(d):
 
 			// если подсистема включена load_system
-			//systemLoadValue = utils.RandFloats(1, 2)
-			dataLoadSystem, err := s.sysmon.GetAvgLoadSystem(req.Period)
-			if err != nil {
-				s.logger.Error("GetAvgLoadSystem", zap.Error(err))
-				return err
+			if s.cfg.Collector.Category.LoadSystem {
+				dataLoadSystem, err := s.sysmon.GetAvgLoadSystem(req.Period)
+				if err != nil {
+					s.logger.Error("GetAvgLoadSystem", zap.Error(err))
+					return err
+				}
+				systemLoadValue = dataLoadSystem.SystemLoadValue
+				err = stream.Send(&api.Result{SystemVal: &api.SystemResponse{SystemLoadValue: systemLoadValue}})
+				if err != nil {
+					return err
+				}
 			}
-			systemLoadValue = dataLoadSystem.SystemLoadValue
-			err = stream.Send(&api.Result{SystemVal: &api.SystemResponse{SystemLoadValue: systemLoadValue}})
-			if err != nil {
-				return err
-			}
+			if s.cfg.Collector.Category.LoadCPU {
 
-			// если подсистема включена load_cpu
+			}
+			if s.cfg.Collector.Category.LoadDisk {
+
+			}
+			if s.cfg.Collector.Category.TopTalkers {
+
+			}
+			if s.cfg.Collector.Category.StatNetwork {
+
+			}
 
 		case <-ctx.Done():
 			s.logger.Error("ctx.Done() stream", zap.Error(ctx.Err()))

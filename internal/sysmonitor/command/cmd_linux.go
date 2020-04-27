@@ -7,9 +7,9 @@ import (
 	"os/exec"
 )
 
-// RunSystem Возвращает строку с информацией о загрузке системы
+// RunSystemLoad Возвращает строку с информацией о загрузке системы
 // выполняемая команда: top -b -n1 | grep load
-func RunSystem() (int, string, string) {
+func RunSystemLoad() (int, string, string) {
 	var output, stderr bytes.Buffer
 
 	c1 := exec.Command("top", "-b", "-n1") // top -b -n1

@@ -29,29 +29,13 @@ func NewSysmonitor(repository interfaces.Storage, conf *config.Config, log *zap.
 // Run запускаем сбор данных
 func (s *SysMonitor) Run(ctx context.Context) error {
 
-	// TODO timout брать из конфига
-	timoutCollection := 5
+	timoutCollection := s.cfg.Collector.Timeout
 	s.logger.Debug("запускаем сбор данных")
-	for i := 1; ; i++ {
-		d := time.Duration(int64(time.Second) * int64(timoutCollection))
-		select {
-		case <-time.After(d):
-			//---------------------------------------
-			systemLoadValue, err := GetSystemInfo()
-			if err != nil {
-				s.logger.Error("GetSystemInfo", zap.Error(err))
-				return err
-			}
-			s.data.SaveLoadSystem(&model.LoadSystem{QueryTime: time.Now(), SystemLoadValue: systemLoadValue})
-			s.logger.Debug("GetSystemInfo", zap.Float64("systemLoadValue", systemLoadValue))
-			//---------------------------------------
 
-		case <-ctx.Done():
-			s.logger.Debug("завершаем сбор данных")
-			return nil
-		}
+	if s.cfg.Collector.Category.LoadSystem {
+		go s.workerLoadSystem(ctx, timoutCollection)
 	}
-	s.logger.Debug("выходим из SysMonitor")
+
 	return nil
 }
 
@@ -65,23 +49,45 @@ func (s *SysMonitor) SaveLoadCPU(data *model.LoadCPU) error {
 	return s.data.SaveLoadCPU(data)
 }
 
-// GetAvgLoadSystem .
+// GetAvgLoadSystem возвращаем среднее заначение LoadSystem
 func (s *SysMonitor) GetAvgLoadSystem(period int32) (*model.LoadSystem, error) {
 	return s.data.GetAvgLoadSystem(period)
 }
 
-// GetAvgLoadCPU .
+// GetAvgLoadCPU возвращаем среднее заначение LoadCPU
 func (s *SysMonitor) GetAvgLoadCPU(period int32) (*model.LoadCPU, error) {
 	return s.data.GetAvgLoadCPU(period)
 }
 
-// GetSystemInfo .
+// workerLoadSystem Считывание и сохранения информации по LoadSystem
+func (s *SysMonitor) workerLoadSystem(ctx context.Context, timout int) error {
+	for {
+		d := time.Duration(int64(time.Second) * int64(timout))
+		select {
+		case <-time.After(d):
+
+			systemLoadValue, err := GetSystemInfo()
+			if err != nil {
+				s.logger.Error("GetSystemInfo", zap.Error(err))
+				return err
+			}
+			s.data.SaveLoadSystem(&model.LoadSystem{QueryTime: time.Now(), SystemLoadValue: systemLoadValue})
+			s.logger.Debug("GetSystemInfo", zap.Float64("systemLoadValue", systemLoadValue))
+
+		case <-ctx.Done():
+			s.logger.Debug("завершаем сбор данных LoadSystem")
+			return nil
+		}
+	}
+}
+
+// GetSystemInfo Получение значения из системы по
 func GetSystemInfo() (float64, error) {
-	res, txt, outerror := command.RunSystem()
+	res, txt, outerror := command.RunSystemLoad()
 	if res != 0 {
 		return 0, fmt.Errorf("%s. %s", outerror, errors.ErrRunReadSystemInfo)
 	}
-	v, err := parser.ParserSystemInfo(txt)
+	v, err := parser.ParserSystemLoad(txt)
 	if err != nil {
 		return 0, fmt.Errorf("%s. %w", errors.ErrParserReadSystemInfo, err)
 	}

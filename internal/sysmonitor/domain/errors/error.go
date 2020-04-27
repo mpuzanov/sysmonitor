@@ -8,7 +8,7 @@ func (ee SysMonitorError) Error() string {
 }
 
 var (
-	// ErrReadSystemInfo .
+	// ErrRunReadSystemInfo .
 	ErrRunReadSystemInfo = SysMonitorError("Error execute ReadSystemInfo")
 	// ErrParserReadSystemInfo .
 	ErrParserReadSystemInfo = SysMonitorError("Error parser ReadSystemInfo")

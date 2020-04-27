@@ -5,11 +5,10 @@ import (
 )
 
 // NewStorage create storage for calendar
-func NewStorage() (interfaces.Storage, error) {
-	var err error
+func NewStorage() interfaces.Storage {
 	var db interfaces.Storage
 
 	db = NewSystemStore()
 
-	return db, err
+	return db
 }

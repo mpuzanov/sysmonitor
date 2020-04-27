@@ -1,0 +1,43 @@
+version: '3.7'
+
+services:
+
+    sysmonitor_api:
+      image: sysmonitor_api
+      container_name: sysmonitor_api
+      build:
+        context: ../.
+        dockerfile: ./deployments/docker/server.Dockerfile      
+      environment:
+        TZ: Europe/Samara 
+      ports:
+        - "50051:50051"
+      expose:
+        - 50051
+      networks:
+        - net
+      healthcheck:
+        test: [ "CMD", "nc", "-z", "localhost", "50051" ]
+        interval: 5s
+        timeout: 10s
+        retries: 5
+      restart: on-failure 
+
+    sysmonitor_client:
+      image: sysmonitor_client
+      container_name: sysmonitor_client
+      build:
+        context: ../.
+        dockerfile: ./deployments/docker/client.Dockerfile        
+      environment:
+        TZ: Europe/Samara
+      depends_on:
+        - sysmonitor_api
+      networks:
+        - net  
+      restart: on-failure
+
+networks:
+  net:
+    name: net
+    driver: bridge

@@ -3,25 +3,25 @@
 # Настройки grpc-сервера    
 # host и port на котором должен работать gRPC-сервер
 host: ""
-port: "50051"
+port: "50055"
 
 # Настройки логирования
 log: 
   # уровень логирования (error / warn / info / debug)
   level: debug
   # путь к файлу логов
-  file: 
+  file: sysmonitor.log
   # формат логирования
-  format_JSON: true
+  format_JSON: false
 
 # Настройка подсистемы сбора статистики
 collector:
     # Частота выполнения сбора статистики в секундах
-    timeout: 4
+    timeout: 5
     # виды сбора статистики: load_system, load_cpu, load_disk, top_talkers, stat_network
     category:
       load_system: true
-      load_cpu: false
-      load_disk: false
-      top_talkers: false
-      stat_network: false
+      load_cpu: true
+      load_disk: true
+      top_talkers: true
+      stat_network: true

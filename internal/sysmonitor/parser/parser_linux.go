@@ -1,4 +1,4 @@
-//+build linux
+// +build linux
 
 package parser
 
@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-// ParserSystemInfo Выдаёт заначение загрузки системы из строки с общей информацией
-func ParserSystemInfo(in string) (float64, error) {
+// ParserSystemLoad Выдаёт заначение загрузки системы из строки с общей информацией
+func ParserSystemLoad(in string) (float64, error) {
 	//top - 19:30:09 up  4:30,  1 user,  load average: 1,02, 0,95, 0,80
 	var res float64
 	idx := strings.LastIndex(in, ":")

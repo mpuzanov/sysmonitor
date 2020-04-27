@@ -17,16 +17,19 @@ GO_TEST_DIRS := $(shell \
 
 build: 
 	@CGO_ENABLED=0 go build -v -o sysmonitor ${SOURCE}
+	
 run:
-	@go run ${SOURCE} grpc_server --config=configs/prod.yaml
+	go run ${SOURCE} grpc_server --config=configs/prod.yaml --port=50053
+	#go run ./cmd/sysmonitor grpc_server --port=50053
 	
 run-client:
-	@go run ${SOURCE} grpc_client --server="0.0.0.0:50051"	
+	@go run ${SOURCE} grpc_client --server=":50053"	
+	#go run ./cmd/sysmonitor grpc_client --server=":50051"
 
 lint: 
 	@goimports -w ${GO_SRC_DIRS}	
 	@gofmt -s -w ${GO_SRC_DIRS}
-	@#golangci-lint run
+	@golangci-lint run
 
 test:
 	go test -race -count 100 ${GO_TEST_DIRS}
@@ -38,10 +41,15 @@ mod:
 	go mod verify
 	go mod tidy
 
+up: build
+	docker-compose -f deployments/docker-compose.yml up --build --detach
+
+down:
+	docker-compose  --file deployments/docker-compose.yml down
 
 release:
-	rm -rf ${RELEASE_DIR}${APP}*
-	GOOS=windows GOARCH=amd64 go build -ldflags="-H windowsgui" -o ${RELEASE_DIR}/${APP}.exe ${SOURCE}
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -a -installsuffix cgo -o ${RELEASE_DIR}/${APP} ${SOURCE}
+	rm -rf ${RELEASE_DIR}/
+	GOOS=windows GOARCH=amd64 go build -o ${RELEASE_DIR}/win/${APP}.exe ${SOURCE}
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w" -o ${RELEASE_DIR}/linux/${APP} ${SOURCE}
 
 .PHONY: build run release lint test gen mod up down
