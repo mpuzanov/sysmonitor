@@ -8,6 +8,7 @@ import (
 
 	"github.com/mpuzanov/sysmonitor/pkg/sysmonitor/api"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
@@ -20,9 +21,10 @@ var (
 var (
 	// GrpcClientCmd .
 	GrpcClientCmd = &cobra.Command{
-		Use:   "grpc_client",
-		Short: "Run grpc client",
-		Run:   grpcClientStart,
+		Use:     "grpc_client",
+		Short:   "Run grpc client",
+		Run:     grpcClientStart,
+		Example: "sysmonitor grpc_client --server=':50051'",
 	}
 )
 
@@ -30,6 +32,11 @@ func init() {
 	GrpcClientCmd.Flags().StringVar(&server, "server", "localhost:50051", "host:port to connect to")
 	GrpcClientCmd.Flags().Int32VarP(&timeOut, "timeout", "t", 5, "timeout(sec) for server")
 	GrpcClientCmd.Flags().Int32VarP(&period, "period", "p", 15, "period(sec) for info  for server")
+	viper.BindPFlags(GrpcClientCmd.Flags())
+	viper.AutomaticEnv()
+	server = viper.GetString("server")
+	timeOut = viper.GetInt32("timeout")
+	period = viper.GetInt32("period")
 }
 
 func grpcClientStart(cmd *cobra.Command, args []string) {
@@ -41,6 +48,7 @@ func grpcClientStart(cmd *cobra.Command, args []string) {
 		log.Fatalf("fail to dial grpc-server: %s, %v\n", server, err)
 	}
 	defer conn.Close()
+	log.Printf("connected to %q, timeout: %d, period: %d", server, timeOut, period)
 
 	client := api.NewSysmonitorClient(conn)
 
