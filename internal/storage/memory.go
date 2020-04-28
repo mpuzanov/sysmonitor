@@ -1,7 +1,11 @@
 package storage
 
 import (
+	"log"
+	"time"
+
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
+	"github.com/mpuzanov/sysmonitor/internal/utils"
 )
 
 // Store структура хранения информации по системе
@@ -31,12 +35,35 @@ func (s *Store) SaveLoadCPU(data *model.LoadCPU) error {
 
 // GetAvgLoadSystem Возврат среднего значения загрузки системы за period
 func (s *Store) GetAvgLoadSystem(period int32) (*model.LoadSystem, error) {
+	return avgLoadSystem(s.dbSys, period)
+}
+
+//avgLoadSystem получить среднее значение показателей за период
+func avgLoadSystem(s []model.LoadSystem, period int32) (*model.LoadSystem, error) {
 	res := model.LoadSystem{}
-	// TODO получить среднее значение показателей за период
-	// пока берём последнее значение
-	if len(s.dbSys) > 0 {
-		res = s.dbSys[len(s.dbSys)-1]
+	now := time.Now().Local()
+	timeStart := now.Add(-time.Second * time.Duration(period))
+	log.Println("now      ", now)
+	log.Println("timeStart", timeStart)
+
+	slv := 0.0
+	count := 0
+	for i := len(s) - 1; i >= 0; i-- {
+		log.Println(s[i])
+		if timeStart.Before(s[i].QueryTime) {
+			slv += s[i].SystemLoadValue
+			count++
+		}
 	}
+	if count > 1 {
+		res.SystemLoadValue = utils.RandToFixed(slv/float64(count), 2)
+	} else {
+		// берём последнее значение
+		if len(s) > 0 {
+			res = s[len(s)-1]
+		}
+	}
+
 	return &res, nil
 }
 
