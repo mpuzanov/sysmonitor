@@ -21,9 +21,9 @@ message SystemResponse {
 
 // средняя загрузка CPU
 message CPUResponse {
-    int32 user_mode = 1;
-    int32 system_mode = 2;
-    int32 idle = 3;
+    double user_mode = 1;
+    double system_mode = 2;
+    double idle = 3;
 }
 
 message Result {
