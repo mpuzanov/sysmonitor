@@ -18,14 +18,23 @@ type Config struct {
 
 // CollectorConf .
 type CollectorConf struct {
-	Timeout  int `yaml:"timeout" mapstructure:"timeout"`
-	Category struct {
-		LoadSystem  bool `yaml:"load_system" mapstructure:"load_system"`
-		LoadCPU     bool `yaml:"load_cpu" mapstructure:"load_cpu"`
-		LoadDisk    bool `yaml:"load_disk" mapstructure:"load_disk"`
-		TopTalkers  bool `yaml:"top_talkers" mapstructure:"top_talkers"`
-		StatNetwork bool `yaml:"stat_network" mapstructure:"stat_network"`
-	} `yaml:"category" mapstructure:"category"`
+	// timeout для сбора информации в системе
+	Timeout int `yaml:"timeout" mapstructure:"timeout"`
+	// Category подсистемы сбора информации
+	Category CategoryConf `yaml:"category" mapstructure:"category"`
+}
+
+type CategoryConf struct {
+	// LoadCPU подсистема сбора информации по загрузке системы
+	LoadSystem bool `yaml:"load_system" mapstructure:"load_system"`
+	// LoadCPU подсистема сбора информации по CPU
+	LoadCPU bool `yaml:"load_cpu" mapstructure:"load_cpu"`
+	// LoadDisk подсистема сбора информации по дискам
+	LoadDisk bool `yaml:"load_disk" mapstructure:"load_disk"`
+	// TopTalkers подсистема сбора информации по трафику сети
+	TopTalkers bool `yaml:"top_talkers" mapstructure:"top_talkers"`
+	// StatNetwork подсистема сбора информации по статистеке сетевым соединениям
+	StatNetwork bool `yaml:"stat_network" mapstructure:"stat_network"`
 }
 
 // LoadConfig Загрузка конфигурации из файла
