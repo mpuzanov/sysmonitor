@@ -4,14 +4,9 @@ go:
     - 1.14.x
 
 before_install:
-    go get -d -v
+    go get -d -v ./cmd/sysmonitor
 
 install: true
-
-notifications:
-    email:
-      on_success: change
-      on_failure: always
 
 script:
     - go test -race -count 100 ./...
