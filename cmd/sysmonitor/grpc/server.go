@@ -31,7 +31,11 @@ var (
 func init() {
 	ServerCmd.Flags().StringVarP(&cfgPath, "config", "c", "", "path to the configuration file")
 	ServerCmd.Flags().StringVarP(&port, "port", "p", "50051", "port grpc server")
-	viper.BindPFlag("port", ServerCmd.Flags().Lookup("port"))
+	err := viper.BindPFlag("port", ServerCmd.Flags().Lookup("port"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func grpcServerStart(cmd *cobra.Command, args []string) {
