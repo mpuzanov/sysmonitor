@@ -121,16 +121,20 @@ func (s *GRPCServer) SysInfo(req *api.Request, stream api.Sysmonitor_SysInfoServ
 				}
 			}
 			if s.cfg.Collector.Category.LoadCPU {
-
-			}
-			if s.cfg.Collector.Category.LoadDisk {
-
-			}
-			if s.cfg.Collector.Category.TopTalkers {
-
-			}
-			if s.cfg.Collector.Category.StatNetwork {
-
+				dataLoadCPU, err := s.sysmon.GetAvgLoadCPU(req.Period)
+				if err != nil {
+					s.logger.Error("GetAvgLoadCPU", zap.Error(err))
+					return err
+				}
+				err = stream.Send(&api.Result{CpuVal: &api.CPUResponse{
+					UserMode:   dataLoadCPU.UserMode,
+					SystemMode: dataLoadCPU.SystemMode,
+					Idle:       dataLoadCPU.Idle,
+				},
+				})
+				if err != nil {
+					return err
+				}
 			}
 
 		case <-ctx.Done():

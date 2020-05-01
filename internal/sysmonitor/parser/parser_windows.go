@@ -4,15 +4,18 @@ package parser
 
 import (
 	"strconv"
+
+	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
 )
 
 // ParserSystemLoad Выдаёт заначение загрузки системы из строки с общей информацией
-func ParserSystemLoad(in string) (float64, error) {
+func ParserSystemLoad(in string) (model.LoadSystem, error) {
 	//
-	var res float64
-	res, err := strconv.ParseFloat(in, 64)
+	var res model.LoadSystem
+	val, err := strconv.ParseFloat(in, 64)
 	if err != nil {
-		return 0, err
+		return res, err
 	}
+	res.SystemLoadValue = val
 	return res, nil
 }

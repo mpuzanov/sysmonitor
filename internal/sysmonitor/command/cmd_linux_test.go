@@ -10,8 +10,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestRunRunSystemLoad(t *testing.T) {
+func TestRunSystemLoad(t *testing.T) {
 	exitCode, outresult, outerror := command.RunSystemLoad()
+	assert.Equal(t, 0, exitCode)
+	assert.NotEmpty(t, outresult)
+	assert.Empty(t, outerror)
+}
+
+func TestRunSystemCPU(t *testing.T) {
+	exitCode, outresult, outerror := command.RunLoadCPU()
 	assert.Equal(t, 0, exitCode)
 	assert.NotEmpty(t, outresult)
 	assert.Empty(t, outerror)

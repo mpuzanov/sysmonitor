@@ -16,7 +16,8 @@ type Store struct {
 
 // NewSystemStore Возвращаем новое хранилище
 func NewSystemStore() *Store {
-	return &Store{dbSys: make([]model.LoadSystem, 0),
+	return &Store{
+		dbSys: make([]model.LoadSystem, 0),
 		dbCPU: make([]model.LoadCPU, 0),
 	}
 }
@@ -71,6 +72,7 @@ func avgLoadSystem(s []model.LoadSystem, period int32) (*model.LoadSystem, error
 func (s *Store) GetAvgLoadCPU(period int32) (*model.LoadCPU, error) {
 	res := model.LoadCPU{}
 	// TODO получить среднее значение показателей за период
+
 	// пока берём последнее значение
 	if len(s.dbCPU) > 0 {
 		res = s.dbCPU[len(s.dbCPU)-1]

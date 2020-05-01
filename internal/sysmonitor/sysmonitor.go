@@ -3,6 +3,7 @@ package sysmonitor
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/mpuzanov/sysmonitor/internal/config"
@@ -33,7 +34,11 @@ func (s *SysMonitor) Run(ctx context.Context) error {
 	s.logger.Debug("запускаем сбор данных")
 
 	if s.cfg.Collector.Category.LoadSystem {
-		go s.workerLoadSystem(ctx, timoutCollection)
+		go log.Fatal(s.workerLoadSystem(ctx, timoutCollection))
+	}
+
+	if s.cfg.Collector.Category.LoadCPU {
+		go log.Fatal(s.workerLoadCPU(ctx, timoutCollection))
 	}
 
 	return nil
@@ -61,18 +66,23 @@ func (s *SysMonitor) GetAvgLoadCPU(period int32) (*model.LoadCPU, error) {
 
 // workerLoadSystem Считывание и сохранения информации по LoadSystem
 func (s *SysMonitor) workerLoadSystem(ctx context.Context, timout int) error {
+
 	for {
 		d := time.Duration(int64(time.Second) * int64(timout))
+
 		select {
 		case <-time.After(d):
 
-			systemLoadValue, err := GetSystemInfo()
+			res, err := GetInfoSystem()
 			if err != nil {
-				s.logger.Error("GetSystemInfo", zap.Error(err))
+				s.logger.Error("GetInfoSystem", zap.Error(err))
 				return err
 			}
-			s.data.SaveLoadSystem(&model.LoadSystem{QueryTime: time.Now(), SystemLoadValue: systemLoadValue})
-			s.logger.Debug("GetSystemInfo", zap.Float64("systemLoadValue", systemLoadValue))
+			err = s.data.SaveLoadSystem(&res)
+			if err != nil {
+				return err
+			}
+			s.logger.Debug("GetInfoSystem", zap.Float64("systemLoadValue", res.SystemLoadValue))
 
 		case <-ctx.Done():
 			s.logger.Debug("завершаем сбор данных LoadSystem")
@@ -81,15 +91,57 @@ func (s *SysMonitor) workerLoadSystem(ctx context.Context, timout int) error {
 	}
 }
 
-// GetSystemInfo Получение значения из системы по
-func GetSystemInfo() (float64, error) {
-	res, txt, outerror := command.RunSystemLoad()
-	if res != 0 {
-		return 0, fmt.Errorf("%s. %s", outerror, errors.ErrRunReadSystemInfo)
+// workerLoadCPU Считывание и сохранения информации по LoadSystem
+func (s *SysMonitor) workerLoadCPU(ctx context.Context, timout int) error {
+
+	for {
+		d := time.Duration(int64(time.Second) * int64(timout))
+
+		select {
+		case <-time.After(d):
+
+			res, err := GetInfoCPU()
+			if err != nil {
+				s.logger.Error("GetInfoCPU", zap.Error(err))
+				return err
+			}
+			err = s.data.SaveLoadCPU(&res)
+			if err != nil {
+				return err
+			}
+			s.logger.Debug("GetInfoCPU", zap.Float64("Idle", res.Idle))
+
+		case <-ctx.Done():
+			s.logger.Debug("завершаем сбор данных LoadCPU")
+			return nil
+		}
 	}
-	v, err := parser.ParserSystemLoad(txt)
+}
+
+// GetInfoSystem Получение значения из системы по
+func GetInfoSystem() (model.LoadSystem, error) {
+	var res model.LoadSystem
+	exitCode, txt, outerror := command.RunSystemLoad()
+	if exitCode != 0 {
+		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunReadInfoSystem)
+	}
+	res, err := parser.ParserSystemLoad(txt)
 	if err != nil {
-		return 0, fmt.Errorf("%s. %w", errors.ErrParserReadSystemInfo, err)
+		return res, fmt.Errorf("%s. %w", errors.ErrParserReadInfoSystem, err)
 	}
-	return v, nil
+	return res, nil
+}
+
+// GetInfoCPU Получение значения из системы по
+func GetInfoCPU() (model.LoadCPU, error) {
+	var res model.LoadCPU
+	exitCode, txt, outerror := command.RunLoadCPU()
+	if exitCode != 0 {
+		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunReadInfoCPU)
+	}
+	res, err := parser.ParserLoadCPU(txt)
+	if err != nil {
+		return res, fmt.Errorf("%s. %w", errors.ErrParserReadInfoCPU, err)
+	}
+	return res, nil
 }

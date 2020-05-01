@@ -11,7 +11,7 @@ type LoadSystem struct {
 // LoadCPU Средняя загрузка CPU
 type LoadCPU struct {
 	QueryTime  time.Time
-	UserMode   int
-	SystemMode int
-	Idle       int
+	UserMode   float64
+	SystemMode float64
+	Idle       float64
 }
