@@ -9,4 +9,5 @@ before_install:
 install: true
 
 script:
+    - golangci-lint run
     - go test -race -count 100 ./...
