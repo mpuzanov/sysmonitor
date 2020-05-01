@@ -16,7 +16,7 @@ type Config struct {
 	Collector CollectorConf  `yaml:"collector" mapstructure:"collector"`
 }
 
-// CollectorConf .
+// CollectorConf подсистемы сбора статистики
 type CollectorConf struct {
 	// timeout для сбора информации в системе
 	Timeout int `yaml:"timeout" mapstructure:"timeout"`
@@ -24,6 +24,7 @@ type CollectorConf struct {
 	Category CategoryConf `yaml:"category" mapstructure:"category"`
 }
 
+// CategoryConf настройки подсистем сбора информации о системе
 type CategoryConf struct {
 	// LoadCPU подсистема сбора информации по загрузке системы
 	LoadSystem bool `yaml:"load_system" mapstructure:"load_system"`
