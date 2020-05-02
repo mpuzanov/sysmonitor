@@ -29,7 +29,7 @@ var (
 )
 
 func init() {
-	GrpcClientCmd.Flags().StringVar(&server, "server", "localhost:50051", "host:port to connect to")
+	GrpcClientCmd.Flags().StringVarP(&server, "server", "s", "localhost:50051", "host:port to connect to")
 	GrpcClientCmd.Flags().Int32VarP(&timeOut, "timeout", "t", 5, "timeout(sec) for server")
 	GrpcClientCmd.Flags().Int32VarP(&period, "period", "p", 15, "period(sec) for info  for server")
 	err := viper.BindPFlags(GrpcClientCmd.Flags())
