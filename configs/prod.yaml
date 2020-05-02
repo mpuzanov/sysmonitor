@@ -8,7 +8,7 @@ port: "50051"
 # Настройки логирования
 log: 
   # уровень логирования (error / warn / info / debug)
-  level: debug
+  level: info
   # путь к файлу логов
   file: 
   # формат логирования
@@ -17,11 +17,11 @@ log:
 # Настройка подсистемы сбора статистики
 collector:
     # Частота выполнения сбора статистики в секундах
-    timeout: 4
+    timeout: 5
     # виды сбора статистики: load_system, load_cpu, load_disk, top_talkers, stat_network
     category:
       load_system: true
-      load_cpu: false
+      load_cpu: true
       load_disk: false
       top_talkers: false
       stat_network: false
