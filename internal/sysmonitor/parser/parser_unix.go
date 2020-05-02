@@ -1,12 +1,14 @@
-// +build linux
+// +build linux darwin
 
 package parser
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/errors"
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
 )
 
@@ -32,13 +34,43 @@ func ParserSystemLoad(in string) (model.LoadSystem, error) {
 func ParserLoadCPU(in string) (model.LoadCPU, error) {
 	//%Cpu(s):  1,3 us,  0,6 sy,  0,0 ni, 96,7 id,  1,3 wa,  0,0 hi,  0,1 si,  0,0 st
 	var res model.LoadCPU
-	// idx := strings.LastIndex(in, ":")
-	// in = strings.TrimLeft(in[idx+1:], " ") // 1,02, 0,95, 0,80
-	// arr := strings.Split(in, ", ")
-	// in = strings.Replace(arr[0], ",", ".", 1)
-	// res, err := strconv.ParseFloat(in, 64)
-	// if err != nil {
-	// 	return 0, err
-	// }
+	var err error
+
+	pattern := `(\d*[.,]?\d+) us\,\s+(\d*[.,]?\d+) sy\,\s+(\d*[.,]?\d+) ni\,\s+(\d*[.,]?\d+) id`
+	re := regexp.MustCompile(pattern)
+	matchall := re.FindAllStringSubmatch(in, -1)
+	if len(matchall) == 0 {
+		return res, errors.ErrParserReadInfoCPU
+	}
+	//log.Println("matchall:", matchall, len(matchall))
+	for _, elements := range matchall {
+		//log.Println("elements:", elements)
+		for key, elem := range elements {
+			elem = strings.Replace(elem, ",", ".", 1)
+			switch key {
+			case 1:
+				{
+					res.UserMode, err = strconv.ParseFloat(elem, 64)
+					if err != nil {
+						return res, err
+					}
+				}
+			case 2:
+				{
+					res.SystemMode, err = strconv.ParseFloat(elem, 64)
+					if err != nil {
+						return res, err
+					}
+				}
+			case 4:
+				{
+					res.Idle, err = strconv.ParseFloat(elem, 64)
+					if err != nil {
+						return res, err
+					}
+				}
+			}
+		}
+	}
 	return res, nil
 }

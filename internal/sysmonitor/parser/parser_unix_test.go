@@ -1,10 +1,11 @@
-//+build linux
+//+build linux darwin
 
 package parser_test
 
 import (
 	"testing"
 
+	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/errors"
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/parser"
 	"github.com/stretchr/testify/assert"
@@ -43,25 +44,37 @@ func TestParserLoadCPU(t *testing.T) {
 		desc string
 		in   string
 		want model.LoadCPU
+		err  error
 	}{
 		{
 			desc: "test 1",
 			in:   "%Cpu(s):  1,3 us,  0,6 sy,  0,0 ni, 96,7 id,  1,3 wa,  0,0 hi,  0,1 si,  0,0 st",
 			want: model.LoadCPU{UserMode: 1.3, SystemMode: 0.6, Idle: 96.7},
+			err:  nil,
 		},
 		{
 			desc: "test 2",
 			in:   "%Cpu(s):  1.3 us,  0.6 sy,  0.0 ni, 96.7 id,  1.3 wa,  0.0 hi,  0.1 si,  0.0 st",
 			want: model.LoadCPU{UserMode: 1.3, SystemMode: 0.6, Idle: 96.7},
+			err:  nil,
+		},
+		{
+			desc: "test error",
+			in:   "%Cpu(s):  1.3 us,  0.6 sy,  0.0 ni, ",
+			want: model.LoadCPU{UserMode: 1.3, SystemMode: 0.6, Idle: 96.7},
+			err:  errors.ErrParserReadInfoCPU,
 		},
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
 			got, err := parser.ParserLoadCPU(tC.in)
-			assert.Empty(t, err)
-			assert.Equal(t, tC.want.UserMode, got.UserMode)
-			assert.Equal(t, tC.want.SystemMode, got.SystemMode)
-			assert.Equal(t, tC.want.Idle, got.Idle)
+			//assert.Empty(t, err)
+			assert.Equal(t, tC.err, err)
+			if err == nil {
+				assert.Equal(t, tC.want.UserMode, got.UserMode)
+				assert.Equal(t, tC.want.SystemMode, got.SystemMode)
+				assert.Equal(t, tC.want.Idle, got.Idle)
+			}
 		})
 	}
 }
