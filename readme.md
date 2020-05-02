@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/mpuzanov/sysmonitor.svg?branch=master)](https://travis-ci.org/mpuzanov/sysmonitor)[![Go Report Card](https://goreportcard.com/badge/github.com/mpuzanov/sysmonitor)](https://goreportcard.com/report/github.com/mpuzanov/sysmonitor)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mpuzanov/sysmonitor)](https://goreportcard.com/report/github.com/mpuzanov/sysmonitor)
 # Проектная работа "Системный мониторинг"
 
 ## Общее описание
