@@ -19,3 +19,10 @@ func ParserSystemLoad(in string) (model.LoadSystem, error) {
 	res.SystemLoadValue = val
 	return res, nil
 }
+
+// ParserLoadCPU Выдаёт заначение загрузки системы из строки с общей информацией
+func ParserLoadCPU(in string) (model.LoadCPU, error) {
+	var res model.LoadCPU
+
+	return res, nil
+}

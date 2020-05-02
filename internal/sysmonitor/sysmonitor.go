@@ -34,11 +34,21 @@ func (s *SysMonitor) Run(ctx context.Context) error {
 	s.logger.Debug("запускаем сбор данных")
 
 	if s.cfg.Collector.Category.LoadSystem {
-		go log.Fatal(s.workerLoadSystem(ctx, timoutCollection))
+		go func() {
+			err := s.workerLoadSystem(ctx, timoutCollection)
+			if err != nil {
+				log.Fatalf("Cannot start workerLoadSystem: %v\n", err)
+			}
+		}()
 	}
 
 	if s.cfg.Collector.Category.LoadCPU {
-		go log.Fatal(s.workerLoadCPU(ctx, timoutCollection))
+		go func() {
+			err := s.workerLoadCPU(ctx, timoutCollection)
+			if err != nil {
+				log.Fatalf("Cannot start workerLoadCPU: %v\n", err)
+			}
+		}()
 	}
 
 	return nil
@@ -66,7 +76,7 @@ func (s *SysMonitor) GetAvgLoadCPU(period int32) (*model.LoadCPU, error) {
 
 // workerLoadSystem Считывание и сохранения информации по LoadSystem
 func (s *SysMonitor) workerLoadSystem(ctx context.Context, timout int) error {
-
+	s.logger.Info("starting collection LoadSystem")
 	for {
 		d := time.Duration(int64(time.Second) * int64(timout))
 
@@ -85,7 +95,7 @@ func (s *SysMonitor) workerLoadSystem(ctx context.Context, timout int) error {
 			s.logger.Debug("GetInfoSystem", zap.Float64("systemLoadValue", res.SystemLoadValue))
 
 		case <-ctx.Done():
-			s.logger.Debug("завершаем сбор данных LoadSystem")
+			s.logger.Info("completing data collection LoadSystem")
 			return nil
 		}
 	}
@@ -93,7 +103,7 @@ func (s *SysMonitor) workerLoadSystem(ctx context.Context, timout int) error {
 
 // workerLoadCPU Считывание и сохранения информации по LoadSystem
 func (s *SysMonitor) workerLoadCPU(ctx context.Context, timout int) error {
-
+	s.logger.Info("starting collection LoadCPU")
 	for {
 		d := time.Duration(int64(time.Second) * int64(timout))
 
@@ -112,13 +122,13 @@ func (s *SysMonitor) workerLoadCPU(ctx context.Context, timout int) error {
 			s.logger.Debug("GetInfoCPU", zap.Float64("Idle", res.Idle))
 
 		case <-ctx.Done():
-			s.logger.Debug("завершаем сбор данных LoadCPU")
+			s.logger.Info("completing data collection LoadCPU")
 			return nil
 		}
 	}
 }
 
-// GetInfoSystem Получение значения из системы по
+// GetInfoSystem Получение информации из системы по LoadSystem
 func GetInfoSystem() (model.LoadSystem, error) {
 	var res model.LoadSystem
 	exitCode, txt, outerror := command.RunSystemLoad()
@@ -132,7 +142,7 @@ func GetInfoSystem() (model.LoadSystem, error) {
 	return res, nil
 }
 
-// GetInfoCPU Получение значения из системы по
+// GetInfoCPU Получение информации из системы по LoadCPU
 func GetInfoCPU() (model.LoadCPU, error) {
 	var res model.LoadCPU
 	exitCode, txt, outerror := command.RunLoadCPU()

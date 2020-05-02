@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"log"
 	"time"
 
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
@@ -44,38 +43,60 @@ func avgLoadSystem(s []model.LoadSystem, period int32) (*model.LoadSystem, error
 	res := model.LoadSystem{}
 	now := time.Now().Local()
 	timeStart := now.Add(-time.Second * time.Duration(period))
-	log.Println("now      ", now)
-	log.Println("timeStart", timeStart)
+	//log.Println("now:", now, "timeStart", timeStart)
 
-	slv := 0.0
 	count := 0
 	for i := len(s) - 1; i >= 0; i-- {
-		log.Println(s[i])
 		if timeStart.Before(s[i].QueryTime) {
-			slv += s[i].SystemLoadValue
+			res.SystemLoadValue += s[i].SystemLoadValue
 			count++
+		} else {
+			break
 		}
 	}
 	if count > 1 {
-		res.SystemLoadValue = utils.RandToFixed(slv/float64(count), 2)
+		res.SystemLoadValue = utils.RandToFixed(res.SystemLoadValue/float64(count), 2)
 	} else {
 		// берём последнее значение
 		if len(s) > 0 {
 			res = s[len(s)-1]
 		}
 	}
-
 	return &res, nil
 }
 
 // GetAvgLoadCPU Возврат среднего значения загрузки системы за period
 func (s *Store) GetAvgLoadCPU(period int32) (*model.LoadCPU, error) {
-	res := model.LoadCPU{}
-	// TODO получить среднее значение показателей за период
+	return avgLoadCPU(s.dbCPU, period)
+}
 
-	// пока берём последнее значение
-	if len(s.dbCPU) > 0 {
-		res = s.dbCPU[len(s.dbCPU)-1]
+//avgLoadCPU получить среднее значение показателей за период
+func avgLoadCPU(s []model.LoadCPU, period int32) (*model.LoadCPU, error) {
+	res := model.LoadCPU{}
+	now := time.Now().Local()
+	timeStart := now.Add(-time.Second * time.Duration(period))
+	//log.Println("now:", now, "timeStart", timeStart)
+
+	count := 0
+	for i := len(s) - 1; i >= 0; i-- {
+		if timeStart.Before(s[i].QueryTime) {
+			res.UserMode += s[i].UserMode
+			res.SystemMode += s[i].SystemMode
+			res.Idle += s[i].Idle
+			count++
+		} else {
+			break
+		}
+	}
+	if count > 1 {
+		res.UserMode = utils.RandToFixed(res.UserMode/float64(count), 2)
+		res.SystemMode = utils.RandToFixed(res.SystemMode/float64(count), 2)
+		res.Idle = utils.RandToFixed(res.Idle/float64(count), 2)
+	} else {
+		// берём последнее значение
+		if len(s) > 0 {
+			res = s[len(s)-1]
+		}
 	}
 	return &res, nil
 }
