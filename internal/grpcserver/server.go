@@ -23,11 +23,11 @@ var grpcServer *grpc.Server
 type GRPCServer struct {
 	cfg    *config.Config
 	logger *zap.Logger
-	sysmon *sysmonitor.SysMonitor
+	sysmon *sysmonitor.Sysmonitor
 }
 
 // Start GRPC service
-func Start(conf *config.Config, logger *zap.Logger, smon *sysmonitor.SysMonitor) error {
+func Start(conf *config.Config, logger *zap.Logger, smon *sysmonitor.Sysmonitor) error {
 
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
@@ -92,9 +92,8 @@ func Start(conf *config.Config, logger *zap.Logger, smon *sysmonitor.SysMonitor)
 	return nil
 }
 
-// SysInfo .
+// SysInfo Раздача клиентам сервиса GRPC информации по системе
 func (s *GRPCServer) SysInfo(req *api.Request, stream api.Sysmonitor_SysInfoServer) error {
-	var systemLoadValue float64
 
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, os.Interrupt)
@@ -102,7 +101,7 @@ func (s *GRPCServer) SysInfo(req *api.Request, stream api.Sysmonitor_SysInfoServ
 	ctx := stream.Context()
 
 	s.logger.Info("Connected client", zap.Int32("timeout", req.Timeout), zap.Int32("period", req.Period))
-	for i := 1; ; i++ {
+	for {
 		d := time.Duration(int64(time.Second) * int64(req.Timeout))
 		select {
 		case <-time.After(d):
@@ -114,8 +113,7 @@ func (s *GRPCServer) SysInfo(req *api.Request, stream api.Sysmonitor_SysInfoServ
 					s.logger.Error("GetAvgLoadSystem", zap.Error(err))
 					return err
 				}
-				systemLoadValue = dataLoadSystem.SystemLoadValue
-				err = stream.Send(&api.Result{SystemVal: &api.SystemResponse{SystemLoadValue: systemLoadValue}})
+				err = stream.Send(&api.Result{SystemVal: &api.SystemResponse{SystemLoadValue: dataLoadSystem.SystemLoadValue}})
 				if err != nil {
 					return err
 				}

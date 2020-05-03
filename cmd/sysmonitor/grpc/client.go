@@ -14,7 +14,7 @@ import (
 
 var (
 	server  string
-	timeOut int32
+	timeout int32
 	period  int32
 )
 
@@ -30,7 +30,7 @@ var (
 
 func init() {
 	GrpcClientCmd.Flags().StringVarP(&server, "server", "s", "localhost:50051", "host:port to connect to")
-	GrpcClientCmd.Flags().Int32VarP(&timeOut, "timeout", "t", 5, "timeout(sec) for server")
+	GrpcClientCmd.Flags().Int32VarP(&timeout, "timeout", "t", 5, "timeout(sec) for server")
 	GrpcClientCmd.Flags().Int32VarP(&period, "period", "p", 15, "period(sec) for info  for server")
 	err := viper.BindPFlags(GrpcClientCmd.Flags())
 	if err != nil {
@@ -38,7 +38,7 @@ func init() {
 	}
 	viper.AutomaticEnv()
 	server = viper.GetString("server")
-	timeOut = viper.GetInt32("timeout")
+	timeout = viper.GetInt32("timeout")
 	period = viper.GetInt32("period")
 }
 
@@ -51,17 +51,17 @@ func grpcClientStart(cmd *cobra.Command, args []string) {
 		log.Fatalf("fail to dial grpc-server: %s, %v\n", server, err)
 	}
 	defer conn.Close()
-	log.Printf("connected to %q, timeout: %d, period: %d", server, timeOut, period)
+	log.Printf("connected to %q, timeout: %d, period: %d", server, timeout, period)
 
 	client := api.NewSysmonitorClient(conn)
 
-	sysinfo(client, timeOut, period)
+	sysinfo(client, timeout, period)
 }
 
-func sysinfo(client api.SysmonitorClient, timeOut int32, period int32) {
+func sysinfo(client api.SysmonitorClient, timeout int32, period int32) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	req := &api.Request{Timeout: timeOut, Period: period}
+	req := &api.Request{Timeout: timeout, Period: period}
 	stream, err := client.SysInfo(ctx, req)
 	if err != nil {
 		log.Fatalf("error stream %v", err)

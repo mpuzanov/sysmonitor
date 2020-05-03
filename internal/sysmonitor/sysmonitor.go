@@ -15,20 +15,20 @@ import (
 	"go.uber.org/zap"
 )
 
-//SysMonitor сервис календаря
-type SysMonitor struct {
+//Sysmonitor сервис для сбора и выдачи информации по системе
+type Sysmonitor struct {
 	data   interfaces.Storage
 	cfg    *config.Config
 	logger *zap.Logger
 }
 
-// NewSysmonitor - конструктор календаря
-func NewSysmonitor(repository interfaces.Storage, conf *config.Config, log *zap.Logger) *SysMonitor {
-	return &SysMonitor{data: repository, cfg: conf, logger: log}
+// NewSysmonitor - конструктор сервиса
+func NewSysmonitor(repository interfaces.Storage, conf *config.Config, log *zap.Logger) *Sysmonitor {
+	return &Sysmonitor{data: repository, cfg: conf, logger: log}
 }
 
 // Run запускаем сбор данных
-func (s *SysMonitor) Run(ctx context.Context) error {
+func (s *Sysmonitor) Run(ctx context.Context) error {
 
 	timoutCollection := s.cfg.Collector.Timeout
 	s.logger.Debug("запускаем сбор данных")
@@ -54,28 +54,28 @@ func (s *SysMonitor) Run(ctx context.Context) error {
 	return nil
 }
 
-// SaveLoadSystem .
-func (s *SysMonitor) SaveLoadSystem(data *model.LoadSystem) error {
+// SaveLoadSystem сохраняем информацию по загрузке системы
+func (s *Sysmonitor) SaveLoadSystem(data *model.LoadSystem) error {
 	return s.data.SaveLoadSystem(data)
 }
 
-// SaveLoadCPU .
-func (s *SysMonitor) SaveLoadCPU(data *model.LoadCPU) error {
+// SaveLoadCPU сохраняем информацию по загрузке CPU
+func (s *Sysmonitor) SaveLoadCPU(data *model.LoadCPU) error {
 	return s.data.SaveLoadCPU(data)
 }
 
 // GetAvgLoadSystem возвращаем среднее заначение LoadSystem
-func (s *SysMonitor) GetAvgLoadSystem(period int32) (*model.LoadSystem, error) {
+func (s *Sysmonitor) GetAvgLoadSystem(period int32) (*model.LoadSystem, error) {
 	return s.data.GetAvgLoadSystem(period)
 }
 
 // GetAvgLoadCPU возвращаем среднее заначение LoadCPU
-func (s *SysMonitor) GetAvgLoadCPU(period int32) (*model.LoadCPU, error) {
+func (s *Sysmonitor) GetAvgLoadCPU(period int32) (*model.LoadCPU, error) {
 	return s.data.GetAvgLoadCPU(period)
 }
 
-// workerLoadSystem Считывание и сохранения информации по LoadSystem
-func (s *SysMonitor) workerLoadSystem(ctx context.Context, timout int) error {
+// workerLoadSystem Считывание и сохранение информации по LoadSystem
+func (s *Sysmonitor) workerLoadSystem(ctx context.Context, timout int) error {
 	s.logger.Info("starting collection LoadSystem")
 	for {
 		d := time.Duration(int64(time.Second) * int64(timout))
@@ -101,8 +101,8 @@ func (s *SysMonitor) workerLoadSystem(ctx context.Context, timout int) error {
 	}
 }
 
-// workerLoadCPU Считывание и сохранения информации по LoadSystem
-func (s *SysMonitor) workerLoadCPU(ctx context.Context, timout int) error {
+// workerLoadCPU Считывание и сохранение информации по LoadSystem
+func (s *Sysmonitor) workerLoadCPU(ctx context.Context, timout int) error {
 	s.logger.Info("starting collection LoadCPU")
 	for {
 		d := time.Duration(int64(time.Second) * int64(timout))
