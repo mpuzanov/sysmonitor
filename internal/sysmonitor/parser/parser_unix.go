@@ -12,6 +12,18 @@ import (
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
 )
 
+const (
+	patternLoadCPU = `(\d*[.,]?\d+) us\,\s+(\d*[.,]?\d+) sy\,\s+(\d*[.,]?\d+) ni\,\s+(\d*[.,]?\d+) id`
+)
+
+var (
+	regexpLoadCPU *regexp.Regexp
+)
+
+func init() {
+	regexpLoadCPU = regexp.MustCompile(patternLoadCPU)
+}
+
 // ParserSystemLoad Выдаёт заначение загрузки системы из строки с общей информацией
 func ParserSystemLoad(in string) (model.LoadSystem, error) {
 	//top - 19:30:09 up  4:30,  1 user,  load average: 1,02, 0,95, 0,80
@@ -36,15 +48,13 @@ func ParserLoadCPU(in string) (model.LoadCPU, error) {
 	var res model.LoadCPU
 	var err error
 
-	pattern := `(\d*[.,]?\d+) us\,\s+(\d*[.,]?\d+) sy\,\s+(\d*[.,]?\d+) ni\,\s+(\d*[.,]?\d+) id`
-	re := regexp.MustCompile(pattern)
-	matchall := re.FindAllStringSubmatch(in, -1)
+	matchall := regexpLoadCPU.FindAllStringSubmatch(in, -1)
 	if len(matchall) == 0 {
 		return res, errors.ErrParserReadInfoCPU
 	}
-	//log.Println("matchall:", matchall, len(matchall))
+
 	for _, elements := range matchall {
-		//log.Println("elements:", elements)
+
 		for key, elem := range elements {
 			elem = strings.Replace(elem, ",", ".", 1)
 			switch key {
