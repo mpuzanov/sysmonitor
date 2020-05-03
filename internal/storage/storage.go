@@ -6,8 +6,5 @@ import (
 
 // NewStorage create storage for calendar
 func NewStorage() interfaces.Storage {
-
-	db := NewSystemStore()
-
-	return db
+	return NewSystemStore()
 }
