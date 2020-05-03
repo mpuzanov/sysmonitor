@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"sync"
 	"time"
 
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
@@ -9,6 +10,7 @@ import (
 
 // Store структура хранения информации по системе
 type Store struct {
+	m     *sync.RWMutex
 	dbSys []model.LoadSystem
 	dbCPU []model.LoadCPU
 }
@@ -16,26 +18,40 @@ type Store struct {
 // NewSystemStore Возвращаем новое хранилище
 func NewSystemStore() *Store {
 	return &Store{
+		m:     &sync.RWMutex{},
 		dbSys: make([]model.LoadSystem, 0),
 		dbCPU: make([]model.LoadCPU, 0),
 	}
 }
 
-// SaveLoadSystem Вводим текущее показание системы
+// SaveLoadSystem Сохраняем текущюю статистику системы
 func (s *Store) SaveLoadSystem(data *model.LoadSystem) error {
+	s.m.Lock()
+	defer s.m.Unlock()
 	s.dbSys = append(s.dbSys, *data)
 	return nil
 }
 
-// SaveLoadCPU Вводим текущее показание CPU
+// SaveLoadCPU Сохраняем текущюю статистику по CPU
 func (s *Store) SaveLoadCPU(data *model.LoadCPU) error {
+	s.m.Lock()
+	defer s.m.Unlock()
 	s.dbCPU = append(s.dbCPU, *data)
 	return nil
 }
 
 // GetAvgLoadSystem Возврат среднего значения загрузки системы за period
 func (s *Store) GetAvgLoadSystem(period int32) (*model.LoadSystem, error) {
+	s.m.RLock()
+	defer s.m.RUnlock()
 	return avgLoadSystem(s.dbSys, period)
+}
+
+// GetAvgLoadCPU Возврат среднего значения загрузки системы за period
+func (s *Store) GetAvgLoadCPU(period int32) (*model.LoadCPU, error) {
+	s.m.RLock()
+	defer s.m.RUnlock()
+	return avgLoadCPU(s.dbCPU, period)
 }
 
 //avgLoadSystem получить среднее значение показателей за период
@@ -63,11 +79,6 @@ func avgLoadSystem(s []model.LoadSystem, period int32) (*model.LoadSystem, error
 		}
 	}
 	return &res, nil
-}
-
-// GetAvgLoadCPU Возврат среднего значения загрузки системы за period
-func (s *Store) GetAvgLoadCPU(period int32) (*model.LoadCPU, error) {
-	return avgLoadCPU(s.dbCPU, period)
 }
 
 //avgLoadCPU получить среднее значение показателей за период
