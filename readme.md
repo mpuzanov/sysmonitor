@@ -7,14 +7,14 @@
 
 # Запуск сервера
 
-Вариантв запуска:
+Варианты запуска:
  - make run
  - ./sysmonitor grpc_server --config=configs/prod.yaml --port=50051
  - ./sysmonitor grpc_server --port=50051
 
 # Запуск клиента
 
-Вариантв запуска:
+Варианты запуска:
  - make run-client
  - ./sysmonitor grpc_client --server=":50051"
  - ./sysmonitor grpc_client --server=":50051" --timeout=5 --period=15
