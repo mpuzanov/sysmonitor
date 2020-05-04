@@ -2,7 +2,6 @@ package grpcserver
 
 import (
 	"context"
-	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -10,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
 	"github.com/mpuzanov/sysmonitor/internal/config"
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor"
 	"github.com/mpuzanov/sysmonitor/pkg/sysmonitor/api"
@@ -45,7 +45,8 @@ func Start(conf *config.Config, logger *zap.Logger, smon *sysmonitor.Sysmonitor)
 		defer wg.Done()
 		err := smon.Run(ctx)
 		if err != nil {
-			log.Fatalf("Cannot start Sysmonitor: %v\n", err)
+			logger.Error("Cannot start Sysmonitor", zap.Error(err))
+			return
 		}
 	}()
 
@@ -62,15 +63,17 @@ func Start(conf *config.Config, logger *zap.Logger, smon *sysmonitor.Sysmonitor)
 		GRPCAddr := s.cfg.Host + ":" + s.cfg.Port
 		lisn, err := net.Listen("tcp", GRPCAddr)
 		if err != nil {
-			log.Fatalf("Cannot listen: %s\n", err)
+			s.logger.Error("Cannot listen", zap.Error(err))
+			return
 		}
 		grpcServer = grpc.NewServer()
 		api.RegisterSysmonitorServer(grpcServer, s)
-		log.Printf("Starting gRPC server %s, file log: %s\n", GRPCAddr, s.cfg.Log.File)
+
 		s.logger.Info("Starting gRPC server", zap.String("address", GRPCAddr))
 
 		if err := grpcServer.Serve(lisn); err != nil {
-			log.Fatalf("Cannot start gRPC server: %s\n", err)
+			s.logger.Error("Cannot start gRPC server", zap.Error(err))
+			return
 		}
 	}()
 
@@ -106,14 +109,16 @@ func (s *GRPCServer) SysInfo(req *api.Request, stream api.Sysmonitor_SysInfoServ
 		select {
 		case <-time.After(d):
 
-			// если подсистема включена load_system
+			// если подсистема load_system включена
 			if s.cfg.Collector.Category.LoadSystem {
 				dataLoadSystem, err := s.sysmon.GetAvgLoadSystem(req.Period)
 				if err != nil {
 					s.logger.Error("GetAvgLoadSystem", zap.Error(err))
 					return err
 				}
-				err = stream.Send(&api.Result{SystemVal: &api.SystemResponse{SystemLoadValue: dataLoadSystem.SystemLoadValue}})
+				err = stream.Send(&api.Result{SystemVal: &api.SystemResponse{
+					QueryTime:       ptypes.TimestampNow(),
+					SystemLoadValue: dataLoadSystem.SystemLoadValue}})
 				if err != nil {
 					return err
 				}
@@ -124,7 +129,13 @@ func (s *GRPCServer) SysInfo(req *api.Request, stream api.Sysmonitor_SysInfoServ
 					s.logger.Error("GetAvgLoadCPU", zap.Error(err))
 					return err
 				}
+				queryTimeProto, err := ptypes.TimestampProto(dataLoadCPU.QueryTime)
+				if err != nil {
+					s.logger.Error("convert QueryTime", zap.Error(err))
+					return err
+				}
 				err = stream.Send(&api.Result{CpuVal: &api.CPUResponse{
+					QueryTime:  queryTimeProto,
 					UserMode:   dataLoadCPU.UserMode,
 					SystemMode: dataLoadCPU.SystemMode,
 					Idle:       dataLoadCPU.Idle,
@@ -136,7 +147,7 @@ func (s *GRPCServer) SysInfo(req *api.Request, stream api.Sysmonitor_SysInfoServ
 			}
 
 		case <-ctx.Done():
-			s.logger.Error("ctx.Done() stream", zap.Error(ctx.Err()))
+			s.logger.Error("end stream to client", zap.Error(ctx.Err()))
 			return ctx.Err()
 
 		case <-stopChan:

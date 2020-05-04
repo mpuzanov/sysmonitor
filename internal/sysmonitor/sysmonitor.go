@@ -3,7 +3,6 @@ package sysmonitor
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/mpuzanov/sysmonitor/internal/config"
@@ -37,7 +36,8 @@ func (s *Sysmonitor) Run(ctx context.Context) error {
 		go func() {
 			err := s.workerLoadSystem(ctx, timoutCollection)
 			if err != nil {
-				log.Fatalf("Cannot start workerLoadSystem: %v\n", err)
+				s.logger.Error("Cannot start workerLoadSystem", zap.Error(err))
+				return
 			}
 		}()
 	}
@@ -46,7 +46,8 @@ func (s *Sysmonitor) Run(ctx context.Context) error {
 		go func() {
 			err := s.workerLoadCPU(ctx, timoutCollection)
 			if err != nil {
-				log.Fatalf("Cannot start workerLoadCPU: %v\n", err)
+				s.logger.Error("Cannot start workerLoadCPU", zap.Error(err))
+				return
 			}
 		}()
 	}
