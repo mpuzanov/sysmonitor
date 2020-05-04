@@ -1,7 +1,6 @@
 syntax = "proto3";
 
-//import "google/protobuf/timestamp.proto";
-//import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
 
 package api;
 option go_package = "api";
@@ -15,15 +14,18 @@ message Request {
 }
 
 message SystemResponse {
+    // время выдачи информации
+    google.protobuf.Timestamp query_time = 1; 
     // средняя загрузка системы
-    double system_load_value = 1;
+    double system_load_value = 2;
 }
 
 // средняя загрузка CPU
 message CPUResponse {
-    double user_mode = 1;
-    double system_mode = 2;
-    double idle = 3;
+    google.protobuf.Timestamp query_time = 1;
+    double user_mode = 2;
+    double system_mode = 3;
+    double idle = 4;
 }
 
 message Result {
