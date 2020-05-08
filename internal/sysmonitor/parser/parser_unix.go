@@ -3,10 +3,10 @@
 package parser
 
 import (
+	"bufio"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/errors"
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
@@ -36,7 +36,6 @@ func ParserSystemLoad(in string) (model.LoadSystem, error) {
 	if err != nil {
 		return res, err
 	}
-	res.QueryTime = time.Now()
 	res.SystemLoadValue = val
 
 	return res, nil
@@ -82,5 +81,100 @@ func ParserLoadCPU(in string) (model.LoadCPU, error) {
 			}
 		}
 	}
+	return res, nil
+}
+
+// ParserLoadDiskDevice анализируем результаты команды iostat -d -k
+func ParserLoadDiskDevice(in string) ([]model.DiskIO, error) {
+	var (
+		res = []model.DiskIO{}
+		v   model.DiskIO
+		err error
+		i   int
+	)
+
+	scanner := bufio.NewScanner(strings.NewReader(in))
+	for scanner.Scan() {
+		// ищем шапку
+		if !strings.HasPrefix(scanner.Text(), "Device") {
+			continue
+		}
+		// нашли, далее читаем данные
+		for scanner.Scan() {
+			s := strings.Replace(scanner.Text(), ",", ".", -1)
+			data := strings.Fields(s)
+			if len(data) < 6 {
+				continue
+			}
+			v.Device = data[0]
+			v.Tps, err = strconv.ParseFloat(data[1], 64)
+			if err != nil {
+				return res, err
+			}
+			v.KbReadS, err = strconv.ParseFloat(data[2], 64)
+			if err != nil {
+				return res, err
+			}
+			v.KbWriteS, err = strconv.ParseFloat(data[3], 64)
+			if err != nil {
+				return res, err
+			}
+			i, err = strconv.Atoi(data[4])
+			if err != nil {
+				return res, err
+			}
+			v.KbRead = int32(i)
+			i, err = strconv.Atoi(data[5])
+			if err != nil {
+				return res, err
+			}
+			v.KbWrite = int32(i)
+
+			res = append(res, v)
+		}
+	}
+	return res, nil
+}
+
+// ParserLoadDiskFS анализируем результаты команды df -k   df -i
+func ParserLoadDiskFS(in string) (map[string]model.DiskFS, error) {
+	var (
+		res = map[string]model.DiskFS{}
+		v   model.DiskFS
+		err error
+		i   int
+	)
+
+	scanner := bufio.NewScanner(strings.NewReader(in))
+	for scanner.Scan() {
+		// ищем шапку
+		if !strings.HasPrefix(scanner.Text(), "Filesystem") {
+			continue
+		}
+		// нашли, далее читаем данные
+		for scanner.Scan() {
+			s := strings.Replace(scanner.Text(), ",", ".", -1)
+			data := strings.Fields(s)
+			if len(data) < 6 {
+				continue
+			}
+			v.FileSystem = data[0]
+			i, err = strconv.Atoi(data[2])
+			if err != nil {
+				return res, err
+			}
+			v.Used = int32(i)
+			i, err = strconv.Atoi(data[3])
+			if err != nil {
+				return res, err
+			}
+			v.Available = int32(i)
+			v.UseProc = data[4]
+			v.MountedOn = data[5]
+
+			res[v.MountedOn] = v
+		}
+	}
+
 	return res, nil
 }

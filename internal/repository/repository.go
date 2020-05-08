@@ -1,4 +1,4 @@
-package interfaces
+package repository
 
 import (
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
@@ -8,6 +8,7 @@ import (
 type Storage interface {
 	StorageLoadSystem
 	StorageLoadCPU
+	StorageLoadDisk
 }
 
 // StorageLoadSystem интерфейс для работы с LoadSystem
@@ -24,4 +25,12 @@ type StorageLoadCPU interface {
 	SaveLoadCPU(data *model.LoadCPU) error
 	//GetAvgLoadCPU получение средней информации за период
 	GetAvgLoadCPU(period int32) (*model.LoadCPU, error)
+}
+
+// StorageLoadDisk интерфейс для работы с дисками
+type StorageLoadDisk interface {
+	//SaveLoadDisk сохранение информации по дискам
+	SaveLoadDisk(data *model.LoadDisk)
+	//GetInfoDisk получение информации по дискам
+	GetInfoDisk() *model.LoadDisk
 }

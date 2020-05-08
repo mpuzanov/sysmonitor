@@ -70,3 +70,18 @@ func RunLoadCPU() (int, string, string) {
 
 	return 0, output.String(), stderr.String()
 }
+
+// RunCommand Выполнение внешней команды и получение результатов
+func RunCommand(name string, arg ...string) (int, string, string) {
+	var output, stderr bytes.Buffer
+
+	cmd := exec.Command(name, arg...)
+	cmd.Stdout = &output
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		if exitError, ok := err.(*exec.ExitError); ok {
+			return exitError.ExitCode(), output.String(), stderr.String()
+		}
+	}
+	return 0, output.String(), stderr.String()
+}

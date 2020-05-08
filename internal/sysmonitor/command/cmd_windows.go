@@ -5,7 +5,7 @@ package command
 import (
 	"strconv"
 
-	"github.com/mpuzanov/sysmonitor/internal/utils"
+	"github.com/mpuzanov/sysmonitor/internal/rand"
 )
 
 // RunSystemLoad Возвращает строку с информацией о загрузке системы
@@ -14,7 +14,7 @@ func RunSystemLoad() (int, string, string) {
 	var output, stderr string
 
 	// формируем случайное значение
-	val := utils.RandFloats(1, 2)
+	val := rand.RandFloats(1, 2)
 
 	output = strconv.FormatFloat(val, 'g', 4, 64)
 	stderr = ""

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/mpuzanov/sysmonitor/internal/config"
-	"github.com/mpuzanov/sysmonitor/internal/interfaces"
+	"github.com/mpuzanov/sysmonitor/internal/repository"
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/command"
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/errors"
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
@@ -16,14 +16,14 @@ import (
 
 //Sysmonitor сервис для сбора и выдачи информации по системе
 type Sysmonitor struct {
-	data   interfaces.Storage
+	data   repository.Storage
 	cfg    *config.Config
 	logger *zap.Logger
 }
 
 // NewSysmonitor - конструктор сервиса
-func NewSysmonitor(repository interfaces.Storage, conf *config.Config, log *zap.Logger) *Sysmonitor {
-	return &Sysmonitor{data: repository, cfg: conf, logger: log}
+func NewSysmonitor(repo repository.Storage, conf *config.Config, log *zap.Logger) *Sysmonitor {
+	return &Sysmonitor{data: repo, cfg: conf, logger: log}
 }
 
 // Run запускаем сбор данных
@@ -52,6 +52,16 @@ func (s *Sysmonitor) Run(ctx context.Context) error {
 		}()
 	}
 
+	if s.cfg.Collector.Category.LoadDisk {
+		go func() {
+			err := s.workerLoadDisk(ctx, timoutCollection)
+			if err != nil {
+				s.logger.Error("Cannot start workerLoadDisk", zap.Error(err))
+				return
+			}
+		}()
+	}
+
 	return nil
 }
 
@@ -75,6 +85,11 @@ func (s *Sysmonitor) GetAvgLoadCPU(period int32) (*model.LoadCPU, error) {
 	return s.data.GetAvgLoadCPU(period)
 }
 
+// GetInfoDisk .
+func (s *Sysmonitor) GetInfoDisk() *model.LoadDisk {
+	return s.data.GetInfoDisk()
+}
+
 // workerLoadSystem Считывание и сохранение информации по LoadSystem
 func (s *Sysmonitor) workerLoadSystem(ctx context.Context, timout int) error {
 	s.logger.Info("starting collection LoadSystem")
@@ -84,16 +99,16 @@ func (s *Sysmonitor) workerLoadSystem(ctx context.Context, timout int) error {
 		select {
 		case <-time.After(d):
 
-			res, err := GetInfoSystem()
+			res, err := QueryInfoSystem()
 			if err != nil {
-				s.logger.Error("GetInfoSystem", zap.Error(err))
+				s.logger.Error("QueryInfoSystem", zap.Error(err))
 				return err
 			}
 			err = s.data.SaveLoadSystem(&res)
 			if err != nil {
 				return err
 			}
-			s.logger.Debug("GetInfoSystem", zap.Float64("systemLoadValue", res.SystemLoadValue))
+			s.logger.Debug("QueryInfoSystem", zap.Float64("systemLoadValue", res.SystemLoadValue))
 
 		case <-ctx.Done():
 			s.logger.Info("completing data collection LoadSystem")
@@ -111,16 +126,16 @@ func (s *Sysmonitor) workerLoadCPU(ctx context.Context, timout int) error {
 		select {
 		case <-time.After(d):
 
-			res, err := GetInfoCPU()
+			res, err := QueryInfoCPU()
 			if err != nil {
-				s.logger.Error("GetInfoCPU", zap.Error(err))
+				s.logger.Error("QueryInfoCPU", zap.Error(err))
 				return err
 			}
 			err = s.data.SaveLoadCPU(&res)
 			if err != nil {
 				return err
 			}
-			s.logger.Debug("GetInfoCPU", zap.Float64("Idle", res.Idle))
+			s.logger.Debug("QueryInfoCPU", zap.Float64("Idle", res.Idle))
 
 		case <-ctx.Done():
 			s.logger.Info("completing data collection LoadCPU")
@@ -129,8 +144,32 @@ func (s *Sysmonitor) workerLoadCPU(ctx context.Context, timout int) error {
 	}
 }
 
-// GetInfoSystem Получение информации из системы по LoadSystem
-func GetInfoSystem() (model.LoadSystem, error) {
+// workerLoadDisk Считывание и сохранение информации по дисковой системе
+func (s *Sysmonitor) workerLoadDisk(ctx context.Context, timout int) error {
+	s.logger.Info("starting collection LoadDisk")
+	for {
+		d := time.Duration(int64(time.Second) * int64(timout))
+
+		select {
+		case <-time.After(d):
+
+			res, err := QueryInfoDisk()
+			if err != nil {
+				s.logger.Error("QueryInfoDisk", zap.Error(err))
+				return err
+			}
+			s.data.SaveLoadDisk(&res)
+			s.logger.Debug("Query QueryInfoDisk")
+
+		case <-ctx.Done():
+			s.logger.Info("completing data collection LoadDisk")
+			return nil
+		}
+	}
+}
+
+// QueryInfoSystem Получение информации из системы по LoadSystem
+func QueryInfoSystem() (model.LoadSystem, error) {
 	var res model.LoadSystem
 	exitCode, txt, outerror := command.RunSystemLoad()
 	if exitCode != 0 {
@@ -143,8 +182,8 @@ func GetInfoSystem() (model.LoadSystem, error) {
 	return res, nil
 }
 
-// GetInfoCPU Получение информации из системы по LoadCPU
-func GetInfoCPU() (model.LoadCPU, error) {
+// QueryInfoCPU Получение информации из системы по LoadCPU
+func QueryInfoCPU() (model.LoadCPU, error) {
 	var res model.LoadCPU
 	exitCode, txt, outerror := command.RunLoadCPU()
 	if exitCode != 0 {
@@ -154,5 +193,41 @@ func GetInfoCPU() (model.LoadCPU, error) {
 	if err != nil {
 		return res, fmt.Errorf("%s. %w", errors.ErrParserReadInfoCPU, err)
 	}
+	return res, nil
+}
+
+// QueryInfoDisk Получение информации по дисковой системе
+func QueryInfoDisk() (model.LoadDisk, error) {
+	var res model.LoadDisk
+
+	exitCode, txt, outerror := command.RunCommand("iostat", "-d", "-k")
+	if exitCode != 0 {
+		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunLoadDiskDevice)
+	}
+	resIO, err := parser.ParserLoadDiskDevice(txt)
+	if err != nil {
+		return res, fmt.Errorf("%s. %w", errors.ErrParserLoadDiskDevice, err)
+	}
+
+	exitCode, txt, outerror = command.RunCommand("df", "-k")
+	if exitCode != 0 {
+		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunLoadDiskFS)
+	}
+	resFS, err := parser.ParserLoadDiskFS(txt)
+	if err != nil {
+		return res, fmt.Errorf("%s. %w", errors.ErrParserLoadDiskFS, err)
+	}
+	exitCode, txt, outerror = command.RunCommand("df", "-i")
+	if exitCode != 0 {
+		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunLoadDiskFSInode)
+	}
+	resFSInode, err := parser.ParserLoadDiskFS(txt)
+	if err != nil {
+		return res, fmt.Errorf("%s. %w", errors.ErrParserLoadDiskFSInode, err)
+	}
+	res.IO = resIO
+	res.FS = resFS
+	res.FSInode = resFSInode
+	res.QueryTime = time.Now()
 	return res, nil
 }

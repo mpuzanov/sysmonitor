@@ -2,14 +2,21 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
 	"github.com/mpuzanov/sysmonitor/pkg/sysmonitor/api"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+)
+
+const (
+	layout = "2006.01.02 15.04.05 (MST)"
 )
 
 var (
@@ -61,7 +68,10 @@ func grpcClientStart(cmd *cobra.Command, args []string) {
 func sysinfo(client api.SysmonitorClient, timeout int32, period int32) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	locZone, _ := time.LoadLocation("Europe/Samara")
 	req := &api.Request{Timeout: timeout, Period: period}
+
 	stream, err := client.SysInfo(ctx, req)
 	if err != nil {
 		log.Fatalf("error stream %v", err)
@@ -75,7 +85,41 @@ func sysinfo(client api.SysmonitorClient, timeout int32, period int32) {
 		if err != nil {
 			log.Fatalf("error reading stream: %v", err)
 		}
-		log.Println(msg)
-		//log.Printf("System load value: %.4f", msg.GetSystemVal().GetSystemLoadValue())
+		if msg.SystemVal != nil {
+			t, _ := ptypes.Timestamp(msg.SystemVal.GetQueryTime())
+			fmt.Printf("InfoSystem: QueryTime: %s, SystemLoadValue:%v\n", t.In(locZone).Format(layout), msg.SystemVal.SystemLoadValue)
+		}
+		if msg.CpuVal != nil {
+			t, _ := ptypes.Timestamp(msg.CpuVal.GetQueryTime())
+			fmt.Printf("InfoCPU: QueryTime: %s, UserMode: %v, SystemMode: %v, Idle: %v\n", t.In(locZone).Format(layout),
+				msg.GetCpuVal().GetUserMode(),
+				msg.GetCpuVal().GetSystemMode(),
+				msg.GetCpuVal().GetIdle(),
+			)
+		}
+
+		if msg.DiskVal != nil {
+			t, _ := ptypes.Timestamp(msg.DiskVal.GetQueryTime())
+			fmt.Printf("InfoDisk: QueryTime: %s\n", t.In(locZone).Format(layout))
+
+			fmt.Printf("\n%-10v  %10v %10v %10v %10v %10v\n", "Device", "Tps", "KbReadS", "KbWriteS", "KbRead", "KbWrite")
+			fmt.Println(strings.Repeat("-", 80))
+			io := msg.GetDiskVal().Io
+			for _, val := range io {
+				fmt.Printf("%-10v  %10v %10v %10v %10v %10v\n", val.Device, val.Tps, val.KbReadS, val.KbWriteS, val.KbRead, val.KbWrite)
+			}
+
+			fmt.Printf("\n%-15v  %10v %10v %10v %10v %10v %10v %30v\n", "FileSystem",
+				"Used", "Available", "Use%", "Used_Inode", "Available_Inode", "Use%_Inode",
+				"MountedOn")
+			fmt.Println(strings.Repeat("-", 100))
+			fs := msg.GetDiskVal().Fs
+			for _, val := range fs {
+				fmt.Printf("%-15v  %10v %10v %10v %10v %10v %10v %30v\n", val.FileSystem,
+					val.Used, val.Available, val.UseProc, val.UsedInode, val.AvailableInode, val.UseProcInode,
+					val.MountedOn)
+			}
+		}
+
 	}
 }

@@ -22,6 +22,6 @@ collector:
     category:
       load_system: true
       load_cpu: true
-      load_disk: false
+      load_disk: true
       top_talkers: false
       stat_network: false

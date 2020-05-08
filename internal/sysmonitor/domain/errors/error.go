@@ -17,4 +17,19 @@ var (
 	ErrRunReadInfoCPU = SysMonitorError("Error execute ReadInfoCPU")
 	// ErrParserReadInfoCPU .
 	ErrParserReadInfoCPU = SysMonitorError("Error parser ReadInfoCPU")
+
+	// ErrRunLoadDiskDevice .
+	ErrRunLoadDiskDevice = SysMonitorError("Error execute RunLoadDiskDevice")
+	// ErrParserLoadDiskDevice .
+	ErrParserLoadDiskDevice = SysMonitorError("Error parser ReadLoadDiskDevice")
+
+	// ErrRunLoadDiskFS .
+	ErrRunLoadDiskFS = SysMonitorError("Error execute RunLoadDiskFS")
+	// ErrParserLoadDiskFS.
+	ErrParserLoadDiskFS = SysMonitorError("Error parser ReadLoadDiskFS")
+
+	// ErrRunLoadDiskFSInode .
+	ErrRunLoadDiskFSInode = SysMonitorError("Error execute RunLoadDiskFSInode")
+	// ErrParserLoadDiskFSInode.
+	ErrParserLoadDiskFSInode = SysMonitorError("Error parser ReadLoadDiskFSInode")
 )

@@ -15,3 +15,30 @@ type LoadCPU struct {
 	SystemMode float64
 	Idle       float64
 }
+
+// LoadDisk информация по дисковой системе
+type LoadDisk struct {
+	QueryTime time.Time
+	IO        []DiskIO
+	FS        map[string]DiskFS
+	FSInode   map[string]DiskFS
+}
+
+// DiskIO информация по загрузке дисков
+type DiskIO struct {
+	Device   string
+	Tps      float64
+	KbReadS  float64
+	KbWriteS float64
+	KbRead   int32
+	KbWrite  int32
+}
+
+// DiskFS информация о дисках по каждой файловой системе
+type DiskFS struct {
+	FileSystem string
+	MountedOn  string
+	Used       int32
+	Available  int32
+	UseProc    string
+}

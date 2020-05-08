@@ -146,6 +146,21 @@ func (s *GRPCServer) SysInfo(req *api.Request, stream api.Sysmonitor_SysInfoServ
 				}
 			}
 
+			if s.cfg.Collector.Category.LoadDisk {
+				dataLoadDisk := s.sysmon.GetInfoDisk()
+				//s.logger.Sugar().Info(dataLoadDisk.IO)
+				valueProto, err := ParserLoadDiskToProto(dataLoadDisk)
+				if err != nil {
+					s.logger.Error("ParserLoadDiskToProto", zap.Error(err))
+					return err
+				}
+				//s.logger.Sugar().Info(valueProto.GetIo())
+				err = stream.Send(&api.Result{DiskVal: valueProto})
+				if err != nil {
+					return err
+				}
+			}
+
 		case <-ctx.Done():
 			s.logger.Error("end stream to client", zap.Error(ctx.Err()))
 			return ctx.Err()

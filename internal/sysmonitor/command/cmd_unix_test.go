@@ -23,3 +23,10 @@ func TestRunSystemCPU(t *testing.T) {
 	assert.NotEmpty(t, outresult)
 	assert.Empty(t, outerror)
 }
+
+func TestRunCommand(t *testing.T) {
+	exitCode, outresult, outerror := command.RunCommand("iostat", "-d", "-k")
+	assert.Equal(t, 0, exitCode)
+	assert.Empty(t, outerror, "outerror not empty")
+	assert.NotEmpty(t, outresult, "result empty")
+}

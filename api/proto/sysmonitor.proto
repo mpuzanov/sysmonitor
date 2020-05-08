@@ -5,6 +5,10 @@ import "google/protobuf/timestamp.proto";
 package api;
 option go_package = "api";
 
+service Sysmonitor {    
+    rpc SysInfo(Request) returns (stream Result) {}   
+  }
+
 // запрос к серверу от клиента
 message Request {
     // промежуток времени выдачи информации (в секундах) 
@@ -30,10 +34,33 @@ message CPUResponse {
 
 message Result {
     SystemResponse system_val = 1;
-    CPUResponse cpu_val = 2;
+    CPUResponse cpu_val       = 2;
+    DiskResponse disk_val     = 3;
 }
 
+message DiskIO {
+    string device    = 1;
+	double tps       = 2;
+	double kbReadS   = 3;
+	double kbWriteS  = 4;
+	int32 kbRead     = 5;
+	int32 kbWrite    = 6;
+}
 
-service Sysmonitor {    
-  rpc SysInfo(Request) returns (stream Result) {}   
+message DiskFS {
+	string fileSystem = 1; 
+	string mountedOn  = 2;
+	int32 used        = 3;
+	int32 available   = 4;
+    string useProc    = 5;  
+	int32 used_inode        = 6;
+	int32 available_inode   = 7;
+	string useProc_inode    = 8;     
+}
+
+message DiskResponse {
+    google.protobuf.Timestamp query_time = 1;
+    repeated DiskIO io = 2;
+    repeated DiskFS fs = 3;
+    //repeated DiskFS fsInode = 4;
 }

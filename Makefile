@@ -32,7 +32,8 @@ lint:
 	@golangci-lint run
 
 test:
-	go test -race -count 100 ${GO_TEST_DIRS}
+	go test ${GO_TEST_DIRS}
+	@#go test -race -count 100 ${GO_TEST_DIRS}
 
 gen:
 	protoc -I api/proto --go_out=plugins=grpc:pkg/sysmonitor/api api/proto/sysmonitor.proto
