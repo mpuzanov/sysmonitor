@@ -7,6 +7,7 @@ COPY ./sysmonitor ./bin/
 COPY ./configs/prod.yaml ./configs/
 
 RUN apt-get update \
+    && apt-get -y install sysstat \
     && apt-get -y install tzdata \
     && dpkg-reconfigure --frontend noninteractive tzdata \
     && rm -rf /var/lib/apt/lists/*
