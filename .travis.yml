@@ -4,7 +4,9 @@ go:
     - 1.14.x
 
 before_install:
-    go get -d -v ./cmd/sysmonitor
+    - sudo apt-get update
+    - sudo apt-get -y install sysstat     
+    - go get -d -v ./cmd/sysmonitor
 
 install: true
 
@@ -13,4 +15,4 @@ before_script:
     
 script:
     - golangci-lint run
-    - go test -race -count 100 ./...
+    - make test
