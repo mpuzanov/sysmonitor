@@ -62,5 +62,4 @@ message DiskResponse {
     google.protobuf.Timestamp query_time = 1;
     repeated DiskIO io = 2;
     repeated DiskFS fs = 3;
-    //repeated DiskFS fsInode = 4;
 }

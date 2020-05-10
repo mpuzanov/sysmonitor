@@ -3,6 +3,7 @@ module github.com/mpuzanov/sysmonitor
 go 1.14
 
 require (
+	github.com/cucumber/godog v0.9.0
 	github.com/golang/protobuf v1.4.0
 	github.com/spf13/cobra v1.0.0
 	github.com/spf13/viper v1.6.3

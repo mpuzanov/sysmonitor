@@ -11,7 +11,7 @@ GO_SRC_DIRS := $(shell \
 	xargs -I {} dirname {}  | \
 	uniq)
 GO_TEST_DIRS := $(shell \
-	find . -name "*_test.go" -not -path "./vendor/*" | \
+	find . -name "*_test.go" -not -path "./vendor/*" -not -path "./tests/*" | \
 	xargs -I {} dirname {}  | \
 	uniq)	
 
@@ -47,6 +47,17 @@ up: build
 
 down:
 	docker-compose  --file deployments/docker-compose.yml down
+
+.PHONY: integration-tests
+# Запуск Integration tests
+integration-tests:
+	set -e ;\
+	docker-compose -f deployments/docker-compose.test.yml up --build -d ;\
+	test_status_code=0 ;\
+	docker-compose -f deployments/docker-compose.test.yml run integration_tests go test ./tests/integration || test_status_code=$$? ;\
+	docker-compose -f deployments/docker-compose.test.yml down --volumes;\
+	printf "Return code is $$test_status_code\n" ;\
+	exit $$test_status_code ;\
 
 release:
 	rm -rf ${RELEASE_DIR}/
