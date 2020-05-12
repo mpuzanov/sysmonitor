@@ -9,6 +9,7 @@ type Storage interface {
 	StorageLoadSystem
 	StorageLoadCPU
 	StorageLoadDisk
+	StorageTalkersNet
 }
 
 // StorageLoadSystem интерфейс для работы с LoadSystem
@@ -33,4 +34,12 @@ type StorageLoadDisk interface {
 	SaveLoadDisk(data *model.LoadDisk)
 	//GetInfoDisk получение информации по дискам
 	GetInfoDisk() *model.LoadDisk
+}
+
+// StorageTalkersNet интерфейс для работы с top talkers сети
+type StorageTalkersNet interface {
+	//SaveTalkersNet сохранение информации
+	SaveTalkersNet(data *model.TalkersNet) error
+	//GetAvgTalkersNet получение средней информации за период
+	GetAvgTalkersNet(period int32) (*model.TalkersNet, error)
 }

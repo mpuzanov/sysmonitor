@@ -23,7 +23,7 @@ run:
 	#go run ./cmd/sysmonitor grpc_server --port=50053
 	
 run-client:
-	@go run ${SOURCE} grpc_client --server=":50053"	
+	@go run ${SOURCE} grpc_client --server=":50053"	-t=10
 	#go run ./cmd/sysmonitor grpc_client --server=":50051"
 
 lint: 

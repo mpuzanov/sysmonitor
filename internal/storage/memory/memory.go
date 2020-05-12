@@ -9,19 +9,21 @@ import (
 
 // Store структура хранения информации по системе
 type Store struct {
-	m      *sync.RWMutex
-	dbSys  []model.LoadSystem
-	dbCPU  []model.LoadCPU
-	dbDisk model.LoadDisk
+	m            *sync.RWMutex
+	dbSys        []model.LoadSystem
+	dbCPU        []model.LoadCPU
+	dbDisk       model.LoadDisk
+	dbTalkersNet []model.TalkersNet
 }
 
 // NewSystemStore Возвращаем новое хранилище
 func NewSystemStore() *Store {
 	return &Store{
-		m:      &sync.RWMutex{},
-		dbSys:  make([]model.LoadSystem, 0),
-		dbCPU:  make([]model.LoadCPU, 0),
-		dbDisk: model.LoadDisk{},
+		m:            &sync.RWMutex{},
+		dbSys:        make([]model.LoadSystem, 0),
+		dbCPU:        make([]model.LoadCPU, 0),
+		dbDisk:       model.LoadDisk{},
+		dbTalkersNet: make([]model.TalkersNet, 0),
 	}
 }
 

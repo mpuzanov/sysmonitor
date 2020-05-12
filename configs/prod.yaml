@@ -23,5 +23,5 @@ collector:
       load_system: true
       load_cpu: true
       load_disk: true
-      top_talkers: false
+      top_talkers: true
       stat_network: false

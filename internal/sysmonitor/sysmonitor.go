@@ -2,15 +2,11 @@ package sysmonitor
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/mpuzanov/sysmonitor/internal/config"
 	"github.com/mpuzanov/sysmonitor/internal/repository"
-	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/command"
-	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/errors"
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
-	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/parser"
 	"go.uber.org/zap"
 )
 
@@ -62,6 +58,16 @@ func (s *Sysmonitor) Run(ctx context.Context) error {
 		}()
 	}
 
+	if s.cfg.Collector.Category.TopTalkers {
+		go func() {
+			err := s.workerTalkersNet(ctx, timoutCollection)
+			if err != nil {
+				s.logger.Error("Cannot start workerTalkersNet", zap.Error(err))
+				return
+			}
+		}()
+	}
+
 	return nil
 }
 
@@ -75,14 +81,23 @@ func (s *Sysmonitor) SaveLoadCPU(data *model.LoadCPU) error {
 	return s.data.SaveLoadCPU(data)
 }
 
-// GetAvgLoadSystem возвращаем среднее заначение LoadSystem
+func (s *Sysmonitor) SaveTalkersNet(data *model.TalkersNet) error {
+	return s.data.SaveTalkersNet(data)
+}
+
+// GetAvgLoadSystem возвращаем среднее значение LoadSystem
 func (s *Sysmonitor) GetAvgLoadSystem(period int32) (*model.LoadSystem, error) {
 	return s.data.GetAvgLoadSystem(period)
 }
 
-// GetAvgLoadCPU возвращаем среднее заначение LoadCPU
+// GetAvgLoadCPU возвращаем среднее значение LoadCPU
 func (s *Sysmonitor) GetAvgLoadCPU(period int32) (*model.LoadCPU, error) {
 	return s.data.GetAvgLoadCPU(period)
+}
+
+// GetAvgTalkersNet возвращаем среднее значение
+func (s *Sysmonitor) GetAvgTalkersNet(period int32) (*model.TalkersNet, error) {
+	return s.data.GetAvgTalkersNet(period)
 }
 
 // GetInfoDisk .
@@ -168,66 +183,28 @@ func (s *Sysmonitor) workerLoadDisk(ctx context.Context, timout int) error {
 	}
 }
 
-// QueryInfoSystem Получение информации из системы по LoadSystem
-func QueryInfoSystem() (model.LoadSystem, error) {
-	var res model.LoadSystem
-	exitCode, txt, outerror := command.RunSystemLoad()
-	if exitCode != 0 {
-		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunReadInfoSystem)
-	}
-	res, err := parser.ParserSystemLoad(txt)
-	if err != nil {
-		return res, fmt.Errorf("%s. %w", errors.ErrParserReadInfoSystem, err)
-	}
-	return res, nil
-}
+// workerTalkersNet Считывание и сохранение информации по TalkersNet
+func (s *Sysmonitor) workerTalkersNet(ctx context.Context, timout int) error {
+	s.logger.Info("starting collection TalkersNet")
+	for {
+		d := time.Duration(int64(time.Second) * int64(timout))
 
-// QueryInfoCPU Получение информации из системы по LoadCPU
-func QueryInfoCPU() (model.LoadCPU, error) {
-	var res model.LoadCPU
-	exitCode, txt, outerror := command.RunLoadCPU()
-	if exitCode != 0 {
-		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunReadInfoCPU)
-	}
-	res, err := parser.ParserLoadCPU(txt)
-	if err != nil {
-		return res, fmt.Errorf("%s. %w", errors.ErrParserReadInfoCPU, err)
-	}
-	return res, nil
-}
+		select {
+		case <-time.After(d):
 
-// QueryInfoDisk Получение информации по дисковой системе
-func QueryInfoDisk() (model.LoadDisk, error) {
-	var res model.LoadDisk
+			res, err := QueryInfoTalkersNet()
+			if err != nil {
+				s.logger.Error("QueryInfoTalkersNet", zap.Error(err))
+				return err
+			}
+			err = s.data.SaveTalkersNet(&res)
+			if err != nil {
+				return err
+			}
 
-	exitCode, txt, outerror := command.RunCommand("iostat", "-d", "-k")
-	if exitCode != 0 {
-		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunLoadDiskDevice)
+		case <-ctx.Done():
+			s.logger.Info("completing data collection TalkersNet")
+			return nil
+		}
 	}
-	resIO, err := parser.ParserLoadDiskDevice(txt)
-	if err != nil {
-		return res, fmt.Errorf("%s. %w", errors.ErrParserLoadDiskDevice, err)
-	}
-
-	exitCode, txt, outerror = command.RunCommand("df", "-k")
-	if exitCode != 0 {
-		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunLoadDiskFS)
-	}
-	resFS, err := parser.ParserLoadDiskFS(txt)
-	if err != nil {
-		return res, fmt.Errorf("%s. %w", errors.ErrParserLoadDiskFS, err)
-	}
-	exitCode, txt, outerror = command.RunCommand("df", "-i")
-	if exitCode != 0 {
-		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunLoadDiskFSInode)
-	}
-	resFSInode, err := parser.ParserLoadDiskFS(txt)
-	if err != nil {
-		return res, fmt.Errorf("%s. %w", errors.ErrParserLoadDiskFSInode, err)
-	}
-	res.IO = resIO
-	res.FS = resFS
-	res.FSInode = resFSInode
-	res.QueryTime = time.Now()
-	return res, nil
 }

@@ -24,7 +24,7 @@ func init() {
 	regexpLoadCPU = regexp.MustCompile(patternLoadCPU)
 }
 
-// ParserSystemLoad Выдаёт заначение загрузки системы из строки с общей информацией
+// ParserSystemLoad Выдаёт значение загрузки системы из строки с общей информацией
 func ParserSystemLoad(in string) (model.LoadSystem, error) {
 	//top - 19:30:09 up  4:30,  1 user,  load average: 1,02, 0,95, 0,80
 	var res model.LoadSystem
@@ -41,7 +41,7 @@ func ParserSystemLoad(in string) (model.LoadSystem, error) {
 	return res, nil
 }
 
-// ParserLoadCPU Выдаёт заначение загрузки системы из строки с общей информацией
+// ParserLoadCPU Выдаёт значение загрузки системы из строки с общей информацией
 func ParserLoadCPU(in string) (model.LoadCPU, error) {
 	//%Cpu(s):  1,3 us,  0,6 sy,  0,0 ni, 96,7 id,  1,3 wa,  0,0 hi,  0,1 si,  0,0 st
 	var res model.LoadCPU
@@ -176,5 +176,59 @@ func ParserLoadDiskFS(in string) (map[string]model.DiskFS, error) {
 		}
 	}
 
+	return res, nil
+}
+
+// ParserDeviceNet анализируем результаты команды cat /proc/net/dev
+func ParserDeviceNet(in string) ([]model.DeviceNet, error) {
+	var (
+		res = []model.DeviceNet{}
+		v   model.DeviceNet
+		err error
+	)
+
+	scanner := bufio.NewScanner(strings.NewReader(in))
+	for scanner.Scan() {
+		// ищем 2 строку шапки
+		if !strings.HasPrefix(strings.TrimSpace(scanner.Text()), "face") {
+			continue
+		}
+		// нашли, далее читаем данные
+		for scanner.Scan() {
+			s := scanner.Text()
+			data := strings.Fields(s)
+			if len(data) < 11 {
+				continue
+			}
+			v.NetInterface = data[0]
+			// далее 8 полей Receive берём первые 3 (1,2,3)
+			v.Receive.Bytes, err = strconv.Atoi(data[1])
+			if err != nil {
+				return res, err
+			}
+			v.Receive.Packets, err = strconv.Atoi(data[2])
+			if err != nil {
+				return res, err
+			}
+			v.Receive.Errs, err = strconv.Atoi(data[3])
+			if err != nil {
+				return res, err
+			}
+			// далее 8 полей Transmit берём первые 3  (9,10,11)
+			v.Transmit.Bytes, err = strconv.Atoi(data[9])
+			if err != nil {
+				return res, err
+			}
+			v.Transmit.Packets, err = strconv.Atoi(data[10])
+			if err != nil {
+				return res, err
+			}
+			v.Transmit.Errs, err = strconv.Atoi(data[11])
+			if err != nil {
+				return res, err
+			}
+			res = append(res, v)
+		}
+	}
 	return res, nil
 }

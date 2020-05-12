@@ -25,11 +25,16 @@ var (
 
 	// ErrRunLoadDiskFS .
 	ErrRunLoadDiskFS = SysMonitorError("Error execute RunLoadDiskFS")
-	// ErrParserLoadDiskFS.
+	// ErrParserLoadDiskFS .
 	ErrParserLoadDiskFS = SysMonitorError("Error parser ReadLoadDiskFS")
 
 	// ErrRunLoadDiskFSInode .
 	ErrRunLoadDiskFSInode = SysMonitorError("Error execute RunLoadDiskFSInode")
-	// ErrParserLoadDiskFSInode.
+	// ErrParserLoadDiskFSInode .
 	ErrParserLoadDiskFSInode = SysMonitorError("Error parser ReadLoadDiskFSInode")
+
+	// ErrRunDeviceNet .
+	ErrRunDeviceNet = SysMonitorError("Error execute ErrRunDeviceNet")
+	// ErrParserDeviceNet .
+	ErrParserDeviceNet = SysMonitorError("Error parser ErrParserDeviceNet")
 )

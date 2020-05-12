@@ -111,34 +111,34 @@ func (s *GRPCServer) SysInfo(req *api.Request, stream api.Sysmonitor_SysInfoServ
 
 			// если подсистема load_system включена
 			if s.cfg.Collector.Category.LoadSystem {
-				dataLoadSystem, err := s.sysmon.GetAvgLoadSystem(req.Period)
+				data, err := s.sysmon.GetAvgLoadSystem(req.Period)
 				if err != nil {
 					s.logger.Error("GetAvgLoadSystem", zap.Error(err))
 					return err
 				}
 				err = stream.Send(&api.Result{SystemVal: &api.SystemResponse{
 					QueryTime:       ptypes.TimestampNow(),
-					SystemLoadValue: dataLoadSystem.SystemLoadValue}})
+					SystemLoadValue: data.SystemLoadValue}})
 				if err != nil {
 					return err
 				}
 			}
 			if s.cfg.Collector.Category.LoadCPU {
-				dataLoadCPU, err := s.sysmon.GetAvgLoadCPU(req.Period)
+				data, err := s.sysmon.GetAvgLoadCPU(req.Period)
 				if err != nil {
 					s.logger.Error("GetAvgLoadCPU", zap.Error(err))
 					return err
 				}
-				queryTimeProto, err := ptypes.TimestampProto(dataLoadCPU.QueryTime)
+				queryTimeProto, err := ptypes.TimestampProto(data.QueryTime)
 				if err != nil {
 					s.logger.Error("convert QueryTime", zap.Error(err))
 					return err
 				}
 				err = stream.Send(&api.Result{CpuVal: &api.CPUResponse{
 					QueryTime:  queryTimeProto,
-					UserMode:   dataLoadCPU.UserMode,
-					SystemMode: dataLoadCPU.SystemMode,
-					Idle:       dataLoadCPU.Idle,
+					UserMode:   data.UserMode,
+					SystemMode: data.SystemMode,
+					Idle:       data.Idle,
 				},
 				})
 				if err != nil {
@@ -147,15 +147,30 @@ func (s *GRPCServer) SysInfo(req *api.Request, stream api.Sysmonitor_SysInfoServ
 			}
 
 			if s.cfg.Collector.Category.LoadDisk {
-				dataLoadDisk := s.sysmon.GetInfoDisk()
-				//s.logger.Sugar().Info(dataLoadDisk.IO)
-				valueProto, err := ParserLoadDiskToProto(dataLoadDisk)
+				data := s.sysmon.GetInfoDisk()
+				valueProto, err := ParserLoadDiskToProto(data)
 				if err != nil {
 					s.logger.Error("ParserLoadDiskToProto", zap.Error(err))
 					return err
 				}
-				//s.logger.Sugar().Info(valueProto.GetIo())
 				err = stream.Send(&api.Result{DiskVal: valueProto})
+				if err != nil {
+					return err
+				}
+			}
+
+			if s.cfg.Collector.Category.TopTalkers {
+				data, err := s.sysmon.GetAvgTalkersNet(req.Period)
+				if err != nil {
+					s.logger.Error("GetAvgTalkersNet", zap.Error(err))
+					return err
+				}
+				valueProto, err := ParserTalkerNetToProto(data)
+				if err != nil {
+					s.logger.Error("ParserTalkerNetToProto", zap.Error(err))
+					return err
+				}
+				err = stream.Send(&api.Result{TalkerNetVal: valueProto})
 				if err != nil {
 					return err
 				}

@@ -42,3 +42,23 @@ type DiskFS struct {
 	Available  int32
 	UseProc    string
 }
+
+// TalkersNet информация по сети
+type TalkersNet struct {
+	QueryTime time.Time
+	DevNet    []DeviceNet
+}
+
+// DeviceNet статистика по использованию сетевых интерфейсов
+type DeviceNet struct {
+	NetInterface string
+	Receive      DevNetStat
+	Transmit     DevNetStat
+}
+
+// DevNetStatistics количественные показатели
+type DevNetStat struct {
+	Bytes   int
+	Packets int
+	Errs    int
+}

@@ -19,10 +19,10 @@ loop0             3,39         3,76         0,00      10473          0
 sda              31,72       597,45       108,62    1665365     302760
 sdb               0,35         1,68        21,00       4688      58536
 `
-	wantIostat = map[string]model.DiskIO{
-		"loop0": {Device: "loop0", Tps: 3.39, KbReadS: 3.76, KbWriteS: 0.00, KbRead: 10473, KbWrite: 0},
-		"sda":   {Device: "sda", Tps: 31.72, KbReadS: 597.45, KbWriteS: 108.62, KbRead: 1665365, KbWrite: 302760},
-		"sdb":   {Device: "sdb", Tps: 0.35, KbReadS: 1.68, KbWriteS: 21.00, KbRead: 10473, KbWrite: 58536},
+	wantIostat = []model.DiskIO{
+		{Device: "loop0", Tps: 3.39, KbReadS: 3.76, KbWriteS: 0.00, KbRead: 10473, KbWrite: 0},
+		{Device: "sda", Tps: 31.72, KbReadS: 597.45, KbWriteS: 108.62, KbRead: 1665365, KbWrite: 302760},
+		{Device: "sdb", Tps: 0.35, KbReadS: 1.68, KbWriteS: 21.00, KbRead: 10473, KbWrite: 58536},
 	}
 
 	testFS = `
@@ -58,7 +58,7 @@ func TestParserLoadDiskDevice(t *testing.T) {
 	testCases := []struct {
 		desc string
 		in   string
-		want map[string]model.DiskIO
+		want []model.DiskIO
 		err  error
 	}{
 		{

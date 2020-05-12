@@ -47,3 +47,29 @@ func ParserLoadDiskToProto(data *model.LoadDisk) (*api.DiskResponse, error) {
 
 	return &res, nil
 }
+
+// ParserTalkerNetToProto .
+func ParserTalkerNetToProto(data *model.TalkersNet) (*api.TalkersNetResponse, error) {
+	var res api.TalkersNetResponse
+
+	queryTimeProto, err := ptypes.TimestampProto(data.QueryTime)
+	if err != nil {
+		return &res, nil
+	}
+	res.QueryTime = queryTimeProto
+
+	for _, v := range data.DevNet {
+
+		vProto := api.DeviceNet{}
+		vProto.NetInterface = v.NetInterface
+		vProto.ReceiveBytes = int32(v.Receive.Bytes)
+		vProto.ReceivePackets = int32(v.Receive.Packets)
+		vProto.ReceiveErrs = int32(v.Receive.Errs)
+		vProto.TransmitBytes = int32(v.Transmit.Bytes)
+		vProto.TransmitPackets = int32(v.Transmit.Packets)
+		vProto.TransmitErrs = int32(v.Transmit.Errs)
+
+		res.Devnet = append(res.Devnet, &vProto)
+	}
+	return &res, nil
+}

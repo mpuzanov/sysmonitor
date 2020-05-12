@@ -83,15 +83,15 @@ func sysinfo(client api.SysmonitorClient, timeout int32, period int32) {
 			return
 		}
 		if err != nil {
-			log.Fatalf("error reading stream: %v", err)
+			log.Fatalf("error reading from stream: %v", err)
 		}
 		if msg.SystemVal != nil {
 			t, _ := ptypes.Timestamp(msg.SystemVal.GetQueryTime())
-			fmt.Printf("InfoSystem: QueryTime: %s, SystemLoadValue:%v\n", t.In(locZone).Format(layout), msg.SystemVal.SystemLoadValue)
+			fmt.Printf("\nInfoSystem: QueryTime: %s, SystemLoadValue:%v\n", t.In(locZone).Format(layout), msg.SystemVal.SystemLoadValue)
 		}
 		if msg.CpuVal != nil {
 			t, _ := ptypes.Timestamp(msg.CpuVal.GetQueryTime())
-			fmt.Printf("InfoCPU: QueryTime: %s, UserMode: %v, SystemMode: %v, Idle: %v\n", t.In(locZone).Format(layout),
+			fmt.Printf("\nInfoCPU: QueryTime: %s, UserMode: %v, SystemMode: %v, Idle: %v\n", t.In(locZone).Format(layout),
 				msg.GetCpuVal().GetUserMode(),
 				msg.GetCpuVal().GetSystemMode(),
 				msg.GetCpuVal().GetIdle(),
@@ -100,7 +100,7 @@ func sysinfo(client api.SysmonitorClient, timeout int32, period int32) {
 
 		if msg.DiskVal != nil {
 			t, _ := ptypes.Timestamp(msg.DiskVal.GetQueryTime())
-			fmt.Printf("InfoDisk: QueryTime: %s\n", t.In(locZone).Format(layout))
+			fmt.Printf("\nInfoDisk: QueryTime: %s\n", t.In(locZone).Format(layout))
 
 			fmt.Printf("\n%-10v  %10v %10v %10v %10v %10v\n", "Device", "Tps", "KbReadS", "KbWriteS", "KbRead", "KbWrite")
 			fmt.Println(strings.Repeat("-", 80))
@@ -118,6 +118,19 @@ func sysinfo(client api.SysmonitorClient, timeout int32, period int32) {
 				fmt.Printf("%-15v  %10v %10v %10v %10v %10v %10v %30v\n", val.FileSystem,
 					val.Used, val.Available, val.UseProc, val.UsedInode, val.AvailableInode, val.UseProcInode,
 					val.MountedOn)
+			}
+		}
+
+		if msg.TalkerNetVal != nil {
+			t, _ := ptypes.Timestamp(msg.TalkerNetVal.GetQueryTime())
+			fmt.Printf("\nInfoTalkerNet: QueryTime: %s", t.In(locZone).Format(layout))
+			fmt.Printf("\n%-20v|%-30v  |%-30v", "", "Receive", "Transmit")
+			fmt.Printf("\n%-20v|%10v|%10v|%10v|%10v|%10v|%10v\n", "Interface", "bytes", "packets", "errs", "bytes", "packets", "packets")
+			fmt.Println(strings.Repeat("-", 86))
+			dat := msg.GetTalkerNetVal().Devnet
+			for _, val := range dat {
+				fmt.Printf("%-20v|%10v|%10v|%10v|%10v|%10v|%10v\n", val.NetInterface, val.ReceiveBytes, val.ReceivePackets, val.ReceiveErrs,
+					val.TransmitBytes, val.TransmitPackets, val.TransmitErrs)
 			}
 		}
 

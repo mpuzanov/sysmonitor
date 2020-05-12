@@ -36,6 +36,7 @@ message Result {
     SystemResponse system_val = 1;
     CPUResponse cpu_val       = 2;
     DiskResponse disk_val     = 3;
+    TalkersNetResponse talker_net_val = 4;
 }
 
 message DiskIO {
@@ -62,4 +63,19 @@ message DiskResponse {
     google.protobuf.Timestamp query_time = 1;
     repeated DiskIO io = 2;
     repeated DiskFS fs = 3;
+}
+
+message TalkersNetResponse {
+    google.protobuf.Timestamp query_time = 1;
+    repeated DeviceNet devnet = 2;
+}
+
+message DeviceNet {
+	string net_interface   = 1; 
+	int32 receive_bytes    = 2;
+	int32 receive_packets  = 3;
+    int32 receive_errs     = 4;  
+	int32 transmit_bytes   = 5;
+	int32 transmit_packets = 6;
+	int32 transmit_errs    = 7;     
 }

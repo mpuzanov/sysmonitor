@@ -83,3 +83,47 @@ func TestAvgLoadCPU(t *testing.T) {
 		})
 	}
 }
+
+func TestAvgTalkersNet(t *testing.T) {
+	testCases := []struct {
+		desc   string
+		sl     []model.TalkersNet
+		period int32
+		want   *model.TalkersNet
+	}{
+		{
+			desc: "test 1",
+			sl: []model.TalkersNet{
+				{
+					QueryTime: time.Now().Add(-time.Second * time.Duration(6)),
+					DevNet: []model.DeviceNet{
+						{NetInterface: "enp0s8", Receive: model.DevNetStat{Bytes: 500}},
+						{NetInterface: "lo", Receive: model.DevNetStat{Bytes: 100}},
+					},
+				},
+				{
+					QueryTime: time.Now(),
+					DevNet: []model.DeviceNet{
+						{NetInterface: "enp0s8", Receive: model.DevNetStat{Bytes: 1000}},
+						{NetInterface: "lo", Receive: model.DevNetStat{Bytes: 200}},
+					},
+				},
+			},
+			period: 15,
+			want: &model.TalkersNet{
+				DevNet: []model.DeviceNet{
+					{NetInterface: "enp0s8", Receive: model.DevNetStat{Bytes: 750}},
+					{NetInterface: "lo", Receive: model.DevNetStat{Bytes: 150}},
+				},
+			},
+		},
+	}
+
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			got, err := avgTalkersNet(tC.sl, tC.period)
+			assert.Empty(t, err)
+			assert.NotEmpty(t, got)
+		})
+	}
+}
