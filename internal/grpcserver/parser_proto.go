@@ -1,6 +1,8 @@
 package grpcserver
 
 import (
+	"sort"
+
 	"github.com/golang/protobuf/ptypes"
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
 	"github.com/mpuzanov/sysmonitor/pkg/sysmonitor/api"
@@ -44,6 +46,13 @@ func ParserLoadDiskToProto(data *model.LoadDisk) (*api.DiskResponse, error) {
 			vProtoFS.UseProcInode = vProtoFSInode.UseProc
 		}
 	}
+	// сортируем таблицы по убыванию
+	sort.Slice(res.Io, func(i, j int) bool {
+		return res.Io[i].KbRead > res.Io[j].KbRead
+	})
+	sort.Slice(res.Fs, func(i, j int) bool {
+		return res.Fs[i].Used > res.Fs[j].Used
+	})
 
 	return &res, nil
 }
@@ -71,6 +80,10 @@ func ParserTalkerNetToProto(data *model.TalkersNet) (*api.TalkersNetResponse, er
 
 		res.Devnet = append(res.Devnet, &vProto)
 	}
+	// сортируем таблицы по убыванию
+	sort.Slice(res.Devnet, func(i, j int) bool {
+		return res.Devnet[i].ReceiveBytes > res.Devnet[j].ReceiveBytes
+	})
 	return &res, nil
 }
 
@@ -95,5 +108,9 @@ func ParserNetworkStatisticsToProto(data *model.NetworkStatistics) (*api.Network
 
 		res.Netstat = append(res.Netstat, &vProto)
 	}
+	// сортируем таблицы по убыванию
+	sort.Slice(res.Netstat, func(i, j int) bool {
+		return res.Netstat[i].Send > res.Netstat[j].Send
+	})
 	return &res, nil
 }
