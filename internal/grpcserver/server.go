@@ -176,6 +176,23 @@ func (s *GRPCServer) SysInfo(req *api.Request, stream api.Sysmonitor_SysInfoServ
 				}
 			}
 
+			if s.cfg.Collector.Category.NetworkStat {
+				data, err := s.sysmon.GetAvgNetworkStatistics(req.Period)
+				if err != nil {
+					s.logger.Error("GetAvgNetworkStatistics", zap.Error(err))
+					return err
+				}
+				valueProto, err := ParserNetworkStatisticsToProto(data)
+				if err != nil {
+					s.logger.Error("ParserNetworkStatisticsToProto", zap.Error(err))
+					return err
+				}
+				err = stream.Send(&api.Result{NetstatVal: valueProto})
+				if err != nil {
+					return err
+				}
+			}
+
 		case <-ctx.Done():
 			s.logger.Error("end stream to client", zap.Error(ctx.Err()))
 			return ctx.Err()

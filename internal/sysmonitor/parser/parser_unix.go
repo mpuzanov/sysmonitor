@@ -232,3 +232,41 @@ func ParserDeviceNet(in string) ([]model.DeviceNet, error) {
 	}
 	return res, nil
 }
+
+// ParserNetworkStatistics анализируем результаты команды: ss -ta
+func ParserNetworkStatistics(in string) ([]model.NetStatDetail, error) {
+	var (
+		res = []model.NetStatDetail{}
+		v   model.NetStatDetail
+		err error
+	)
+
+	scanner := bufio.NewScanner(strings.NewReader(in))
+	for scanner.Scan() {
+		// ищем строку шапки
+		if !strings.HasPrefix(strings.TrimSpace(scanner.Text()), "State") {
+			continue
+		}
+		// нашли, далее читаем данные
+		for scanner.Scan() {
+			s := scanner.Text()
+			data := strings.Fields(s)
+			if len(data) < 5 {
+				continue
+			}
+			v.State = data[0]
+			v.Recv, err = strconv.Atoi(data[1])
+			if err != nil {
+				return res, err
+			}
+			v.Send, err = strconv.Atoi(data[2])
+			if err != nil {
+				return res, err
+			}
+			v.LocalAddress = data[3]
+			v.PeerAddress = data[4]
+			res = append(res, v)
+		}
+	}
+	return res, nil
+}

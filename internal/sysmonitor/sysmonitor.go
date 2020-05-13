@@ -68,6 +68,16 @@ func (s *Sysmonitor) Run(ctx context.Context) error {
 		}()
 	}
 
+	if s.cfg.Collector.Category.NetworkStat {
+		go func() {
+			err := s.workerNetworkStatistics(ctx, timoutCollection)
+			if err != nil {
+				s.logger.Error("Cannot start workerNetworkStatistics", zap.Error(err))
+				return
+			}
+		}()
+	}
+
 	return nil
 }
 
@@ -81,8 +91,14 @@ func (s *Sysmonitor) SaveLoadCPU(data *model.LoadCPU) error {
 	return s.data.SaveLoadCPU(data)
 }
 
+// SaveTalkersNet сохраняем информацию
 func (s *Sysmonitor) SaveTalkersNet(data *model.TalkersNet) error {
 	return s.data.SaveTalkersNet(data)
+}
+
+// SaveNetworkStatistics сохраняем информацию
+func (s *Sysmonitor) SaveNetworkStatistics(data *model.NetworkStatistics) error {
+	return s.data.SaveNetworkStatistics(data)
 }
 
 // GetAvgLoadSystem возвращаем среднее значение LoadSystem
@@ -100,7 +116,12 @@ func (s *Sysmonitor) GetAvgTalkersNet(period int32) (*model.TalkersNet, error) {
 	return s.data.GetAvgTalkersNet(period)
 }
 
-// GetInfoDisk .
+// GetAvgNetworkStatistics возвращаем среднее значение
+func (s *Sysmonitor) GetAvgNetworkStatistics(period int32) (*model.NetworkStatistics, error) {
+	return s.data.GetAvgNetworkStatistics(period)
+}
+
+// GetInfoDisk возвращаем информацию по дискам
 func (s *Sysmonitor) GetInfoDisk() *model.LoadDisk {
 	return s.data.GetInfoDisk()
 }
@@ -204,6 +225,32 @@ func (s *Sysmonitor) workerTalkersNet(ctx context.Context, timout int) error {
 
 		case <-ctx.Done():
 			s.logger.Info("completing data collection TalkersNet")
+			return nil
+		}
+	}
+}
+
+// workerNetworkStatistics Считывание и сохранение информации по NetworkStatistics
+func (s *Sysmonitor) workerNetworkStatistics(ctx context.Context, timout int) error {
+	s.logger.Info("starting collection NetworkStatistics")
+	for {
+		d := time.Duration(int64(time.Second) * int64(timout))
+
+		select {
+		case <-time.After(d):
+
+			res, err := QueryInfoNetworkStatistics()
+			if err != nil {
+				s.logger.Error("QueryInfoNetworkStatistics", zap.Error(err))
+				return err
+			}
+			err = s.data.SaveNetworkStatistics(&res)
+			if err != nil {
+				return err
+			}
+
+		case <-ctx.Done():
+			s.logger.Info("completing data collection NetworkStatistics")
 			return nil
 		}
 	}

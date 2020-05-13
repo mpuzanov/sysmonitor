@@ -73,3 +73,27 @@ func ParserTalkerNetToProto(data *model.TalkersNet) (*api.TalkersNetResponse, er
 	}
 	return &res, nil
 }
+
+// ParserNetworkStatisticsToProto .
+func ParserNetworkStatisticsToProto(data *model.NetworkStatistics) (*api.NetworkStatisticsResponse, error) {
+	var res api.NetworkStatisticsResponse
+
+	queryTimeProto, err := ptypes.TimestampProto(data.QueryTime)
+	if err != nil {
+		return &res, nil
+	}
+	res.QueryTime = queryTimeProto
+
+	for _, v := range data.StatNet {
+
+		vProto := api.NetStatDetail{}
+		vProto.State = v.State
+		vProto.Recv = int32(v.Recv)
+		vProto.Send = int32(v.Send)
+		vProto.LocalAddress = v.LocalAddress
+		vProto.PeerAddress = v.PeerAddress
+
+		res.Netstat = append(res.Netstat, &vProto)
+	}
+	return &res, nil
+}

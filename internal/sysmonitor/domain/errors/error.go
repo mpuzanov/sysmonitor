@@ -37,4 +37,9 @@ var (
 	ErrRunDeviceNet = SysMonitorError("Error execute ErrRunDeviceNet")
 	// ErrParserDeviceNet .
 	ErrParserDeviceNet = SysMonitorError("Error parser ErrParserDeviceNet")
+
+	// ErrRunNetworkStatistics .
+	ErrRunNetworkStatistics = SysMonitorError("Error execute ErrRunNetworkStatistics")
+	// ErrParserNetworkStatistics .
+	ErrParserNetworkStatistics = SysMonitorError("Error parser ErrParserNetworkStatistics")
 )

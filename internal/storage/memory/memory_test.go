@@ -97,23 +97,23 @@ func TestAvgTalkersNet(t *testing.T) {
 				{
 					QueryTime: time.Now().Add(-time.Second * time.Duration(6)),
 					DevNet: []model.DeviceNet{
-						{NetInterface: "enp0s8", Receive: model.DevNetStat{Bytes: 500}},
-						{NetInterface: "lo", Receive: model.DevNetStat{Bytes: 100}},
+						{NetInterface: "enp0s8", Receive: model.DevNetDetail{Bytes: 500}},
+						{NetInterface: "lo", Receive: model.DevNetDetail{Bytes: 100}},
 					},
 				},
 				{
 					QueryTime: time.Now(),
 					DevNet: []model.DeviceNet{
-						{NetInterface: "enp0s8", Receive: model.DevNetStat{Bytes: 1000}},
-						{NetInterface: "lo", Receive: model.DevNetStat{Bytes: 200}},
+						{NetInterface: "enp0s8", Receive: model.DevNetDetail{Bytes: 1000}},
+						{NetInterface: "lo", Receive: model.DevNetDetail{Bytes: 200}},
 					},
 				},
 			},
 			period: 15,
 			want: &model.TalkersNet{
 				DevNet: []model.DeviceNet{
-					{NetInterface: "enp0s8", Receive: model.DevNetStat{Bytes: 750}},
-					{NetInterface: "lo", Receive: model.DevNetStat{Bytes: 150}},
+					{NetInterface: "enp0s8", Receive: model.DevNetDetail{Bytes: 750}},
+					{NetInterface: "lo", Receive: model.DevNetDetail{Bytes: 150}},
 				},
 			},
 		},
@@ -124,6 +124,53 @@ func TestAvgTalkersNet(t *testing.T) {
 			got, err := avgTalkersNet(tC.sl, tC.period)
 			assert.Empty(t, err)
 			assert.NotEmpty(t, got)
+			assert.Equal(t, tC.want.DevNet[0].Receive.Bytes, got.DevNet[0].Receive.Bytes)
+		})
+	}
+}
+
+func TestAvgNetworkStatistics(t *testing.T) {
+	testCases := []struct {
+		desc   string
+		sl     []model.NetworkStatistics
+		period int32
+		want   *model.NetworkStatistics
+	}{
+		{
+			desc: "test 1",
+			sl: []model.NetworkStatistics{
+				{
+					QueryTime: time.Now().Add(-time.Second * time.Duration(6)),
+					StatNet: []model.NetStatDetail{
+						{LocalAddress: "127.0.0.1:ipp", Recv: 0, Send: 256},
+						{LocalAddress: "10.0.3.15:47704", Recv: 700, Send: 0},
+					},
+				},
+				{
+					QueryTime: time.Now(),
+					StatNet: []model.NetStatDetail{
+						{LocalAddress: "127.0.0.1:ipp", Recv: 0, Send: 128},
+						{LocalAddress: "10.0.3.15:47704", Recv: 734, Send: 0},
+					},
+				},
+			},
+			period: 15,
+			want: &model.NetworkStatistics{
+				StatNet: []model.NetStatDetail{
+					{LocalAddress: "127.0.0.1:ipp  ", Recv: 0, Send: 192},
+					{LocalAddress: "10.0.3.15:47704", Recv: 717, Send: 0},
+				},
+			},
+		},
+	}
+
+	for _, tC := range testCases {
+		t.Run(tC.desc, func(t *testing.T) {
+			got, err := avgNetworkStatistics(tC.sl, tC.period)
+			assert.Empty(t, err)
+			assert.NotEmpty(t, got)
+			assert.Equal(t, tC.want.StatNet[0].Send, got.StatNet[0].Send)
+			assert.Equal(t, tC.want.StatNet[1].Recv, got.StatNet[1].Recv)
 		})
 	}
 }

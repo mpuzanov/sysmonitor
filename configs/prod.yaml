@@ -18,10 +18,10 @@ log:
 collector:
     # Частота выполнения сбора статистики в секундах
     timeout: 5
-    # виды сбора статистики: load_system, load_cpu, load_disk, top_talkers, stat_network
+    # виды сбора статистики: load_system, load_cpu, load_disk, top_talkers, network_stat
     category:
       load_system: true
       load_cpu: true
       load_disk: true
       top_talkers: true
-      stat_network: false
+      network_stat: true

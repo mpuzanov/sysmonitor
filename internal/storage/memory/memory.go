@@ -14,6 +14,7 @@ type Store struct {
 	dbCPU        []model.LoadCPU
 	dbDisk       model.LoadDisk
 	dbTalkersNet []model.TalkersNet
+	dbNetStat    []model.NetworkStatistics
 }
 
 // NewSystemStore Возвращаем новое хранилище
@@ -24,6 +25,7 @@ func NewSystemStore() *Store {
 		dbCPU:        make([]model.LoadCPU, 0),
 		dbDisk:       model.LoadDisk{},
 		dbTalkersNet: make([]model.TalkersNet, 0),
+		dbNetStat:    make([]model.NetworkStatistics, 0),
 	}
 }
 

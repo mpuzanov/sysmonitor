@@ -10,6 +10,7 @@ type Storage interface {
 	StorageLoadCPU
 	StorageLoadDisk
 	StorageTalkersNet
+	StorageNetworkStatistics
 }
 
 // StorageLoadSystem интерфейс для работы с LoadSystem
@@ -42,4 +43,12 @@ type StorageTalkersNet interface {
 	SaveTalkersNet(data *model.TalkersNet) error
 	//GetAvgTalkersNet получение средней информации за период
 	GetAvgTalkersNet(period int32) (*model.TalkersNet, error)
+}
+
+// StorageNetworkStatistics интерфейс для работы со статистикой по сетевым соединениям
+type StorageNetworkStatistics interface {
+	//SaveTalkersNet сохранение информации
+	SaveNetworkStatistics(data *model.NetworkStatistics) error
+	//GetAvgTalkersNet получение средней информации за период
+	GetAvgNetworkStatistics(period int32) (*model.NetworkStatistics, error)
 }

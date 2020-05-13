@@ -134,5 +134,17 @@ func sysinfo(client api.SysmonitorClient, timeout int32, period int32) {
 			}
 		}
 
+		if msg.NetstatVal != nil {
+			t, _ := ptypes.Timestamp(msg.NetstatVal.GetQueryTime())
+			fmt.Printf("\nInfoNetworkStatistics: QueryTime: %s", t.In(locZone).Format(layout))
+			fmt.Printf("\n%-15v|%10v|%10v|%25v|%20v\n", "State", "Recv", "Send", "LocalAddress", "PeerAddress")
+			fmt.Println(strings.Repeat("-", 86))
+			dat := msg.GetNetstatVal().Netstat
+			for _, val := range dat {
+				fmt.Printf("%-15v|%10v|%10v|%25v|%20v\n",
+					val.State, val.Recv, val.Send, val.LocalAddress, val.PeerAddress)
+			}
+		}
+
 	}
 }

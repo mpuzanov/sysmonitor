@@ -92,3 +92,22 @@ func QueryInfoTalkersNet() (model.TalkersNet, error) {
 
 	return res, nil
 }
+
+// QueryInfoNetworkStatistics Получение информации по статистики сети
+func QueryInfoNetworkStatistics() (model.NetworkStatistics, error) {
+	var res model.NetworkStatistics
+
+	exitCode, txt, outerror := command.RunCommand("ss", "-ta")
+	if exitCode != 0 {
+		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunNetworkStatistics)
+	}
+	resNet, err := parser.ParserNetworkStatistics(txt)
+	if err != nil {
+		return res, fmt.Errorf("%s. %w", errors.ErrParserNetworkStatistics, err)
+	}
+
+	res.StatNet = resNet
+	res.QueryTime = time.Now()
+
+	return res, nil
+}

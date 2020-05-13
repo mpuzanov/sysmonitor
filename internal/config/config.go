@@ -34,8 +34,8 @@ type CategoryConf struct {
 	LoadDisk bool `yaml:"load_disk" mapstructure:"load_disk"`
 	// TopTalkers подсистема сбора информации по трафику сети
 	TopTalkers bool `yaml:"top_talkers" mapstructure:"top_talkers"`
-	// StatNetwork подсистема сбора информации по статистеке сетевым соединениям
-	StatNetwork bool `yaml:"stat_network" mapstructure:"stat_network"`
+	// NetworkStat подсистема сбора информации по статистеке сетевым соединениям
+	NetworkStat bool `yaml:"stat_network" mapstructure:"network_stat"`
 }
 
 // LoadConfig Загрузка конфигурации из файла

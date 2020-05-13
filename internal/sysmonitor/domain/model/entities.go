@@ -52,13 +52,26 @@ type TalkersNet struct {
 // DeviceNet статистика по использованию сетевых интерфейсов
 type DeviceNet struct {
 	NetInterface string
-	Receive      DevNetStat
-	Transmit     DevNetStat
+	Receive      DevNetDetail
+	Transmit     DevNetDetail
 }
 
-// DevNetStatistics количественные показатели
-type DevNetStat struct {
+// DevNetDetail количественные показатели
+type DevNetDetail struct {
 	Bytes   int
 	Packets int
 	Errs    int
+}
+
+type NetworkStatistics struct {
+	QueryTime time.Time
+	StatNet   []NetStatDetail
+}
+
+type NetStatDetail struct {
+	State        string
+	Recv         int
+	Send         int
+	LocalAddress string
+	PeerAddress  string
 }

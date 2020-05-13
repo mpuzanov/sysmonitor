@@ -28,7 +28,6 @@ func avgTalkersNet(s []model.TalkersNet, period int32) (*model.TalkersNet, error
 
 	now := time.Now().Local()
 	timeStart := now.Add(-time.Second * time.Duration(period))
-	//fmt.Println("now:", now, "timeStart", timeStart)
 
 	count := 0
 	for i := len(s) - 1; i >= 0; i-- {
@@ -61,7 +60,9 @@ func avgTalkersNet(s []model.TalkersNet, period int32) (*model.TalkersNet, error
 			sumDevNet[v.NetInterface].Transmit.Packets = sumDevNet[v.NetInterface].Transmit.Packets / count
 			sumDevNet[v.NetInterface].Transmit.Errs = sumDevNet[v.NetInterface].Transmit.Errs / count
 		}
-
+		for _, v := range sumDevNet {
+			res.DevNet = append(res.DevNet, *v)
+		}
 	} else {
 		// берём последнее значение
 		if len(s) > 0 {
@@ -69,8 +70,69 @@ func avgTalkersNet(s []model.TalkersNet, period int32) (*model.TalkersNet, error
 		}
 	}
 	res.QueryTime = now
-	for _, v := range sumDevNet {
-		res.DevNet = append(res.DevNet, *v)
+
+	return &res, nil
+}
+
+// SaveTalkersNet Сохраняем текущую статистику по трафику сети
+func (s *Store) SaveNetworkStatistics(data *model.NetworkStatistics) error {
+	s.m.Lock()
+	defer s.m.Unlock()
+	s.dbNetStat = append(s.dbNetStat, *data)
+	return nil
+}
+
+// GetAvgTalkersNet Возврат среднего значения трафика по сетевым интерфейсам за period
+func (s *Store) GetAvgNetworkStatistics(period int32) (*model.NetworkStatistics, error) {
+	s.m.RLock()
+	defer s.m.RUnlock()
+	return avgNetworkStatistics(s.dbNetStat, period)
+}
+
+// avgNetworkStatistics получить среднее значение показателей за период
+func avgNetworkStatistics(s []model.NetworkStatistics, period int32) (*model.NetworkStatistics, error) {
+	res := model.NetworkStatistics{}
+	sumNet := map[string]*model.NetStatDetail{}
+
+	now := time.Now().Local()
+	timeStart := now.Add(-time.Second * time.Duration(period))
+
+	count := 0
+	for i := len(s) - 1; i >= 0; i-- {
+		if timeStart.Before(s[i].QueryTime) {
+			for _, dv := range s[i].StatNet {
+				_, ok := sumNet[dv.LocalAddress]
+				if !ok {
+					sumNet[dv.LocalAddress] = &model.NetStatDetail{}
+				}
+				sumNet[dv.LocalAddress].State = dv.State
+				sumNet[dv.LocalAddress].LocalAddress = dv.LocalAddress
+				sumNet[dv.LocalAddress].PeerAddress = dv.PeerAddress
+
+				sumNet[dv.LocalAddress].Recv += dv.Recv
+				sumNet[dv.LocalAddress].Send += dv.Send
+			}
+			count++
+		} else {
+			break
+		}
 	}
+	if count > 1 {
+		// расчитываем средние значения по локальному адресу
+		for _, v := range sumNet {
+			sumNet[v.LocalAddress].Recv = sumNet[v.LocalAddress].Recv / count
+			sumNet[v.LocalAddress].Send = sumNet[v.LocalAddress].Send / count
+		}
+		for _, v := range sumNet {
+			res.StatNet = append(res.StatNet, *v)
+		}
+	} else {
+		// берём последнее значение
+		if len(s) > 0 {
+			res = s[len(s)-1]
+		}
+	}
+	res.QueryTime = now
+
 	return &res, nil
 }

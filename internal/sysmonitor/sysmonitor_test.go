@@ -31,3 +31,9 @@ func TestQueryInfoDeviceNet(t *testing.T) {
 	assert.Empty(t, err)
 	assert.NotEqual(t, 0, len(got.DevNet))
 }
+
+func TestQueryInfoNetworkStatistics(t *testing.T) {
+	got, err := sysmonitor.QueryInfoNetworkStatistics()
+	assert.Empty(t, err)
+	assert.NotEqual(t, 0, len(got.StatNet))
+}
