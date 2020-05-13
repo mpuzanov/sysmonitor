@@ -20,9 +20,15 @@ const (
 )
 
 var (
-	server  string
+	address string
 	timeout int32
 	period  int32
+
+	sys     bool
+	cpu     bool
+	disk    bool
+	toptalk bool
+	netstat bool
 )
 
 var (
@@ -31,20 +37,25 @@ var (
 		Use:     "grpc_client",
 		Short:   "Run grpc client",
 		Run:     grpcClientStart,
-		Example: "sysmonitor grpc_client --server=':50051'",
+		Example: "sysmonitor grpc_client --address=':50051'",
 	}
 )
 
 func init() {
-	GrpcClientCmd.Flags().StringVarP(&server, "server", "s", "localhost:50051", "host:port to connect to")
-	GrpcClientCmd.Flags().Int32VarP(&timeout, "timeout", "t", 5, "timeout(sec) for server")
-	GrpcClientCmd.Flags().Int32VarP(&period, "period", "p", 15, "period(sec) for info  for server")
+	GrpcClientCmd.Flags().StringVarP(&address, "address", "", "localhost:50051", "host:port to connect to")
+	GrpcClientCmd.Flags().Int32VarP(&timeout, "timeout", "", 5, "timeout(sec) for server")
+	GrpcClientCmd.Flags().Int32VarP(&period, "period", "", 15, "period(sec) for info  for server")
+	GrpcClientCmd.Flags().BoolVarP(&sys, "sys", "s", false, "collecting statistics on the load average")
+	GrpcClientCmd.Flags().BoolVarP(&cpu, "cpu", "c", false, "collecting statistics on the CPU")
+	GrpcClientCmd.Flags().BoolVarP(&disk, "disk", "d", false, "collecting statistics on the Disk")
+	GrpcClientCmd.Flags().BoolVarP(&toptalk, "toptalk", "t", false, "collecting statistics top talkers")
+	GrpcClientCmd.Flags().BoolVarP(&netstat, "netstat", "n", false, "collecting statistics on the network")
 	err := viper.BindPFlags(GrpcClientCmd.Flags())
 	if err != nil {
 		log.Fatal(err)
 	}
 	viper.AutomaticEnv()
-	server = viper.GetString("server")
+	address = viper.GetString("address")
 	timeout = viper.GetInt32("timeout")
 	period = viper.GetInt32("period")
 }
@@ -53,14 +64,23 @@ func grpcClientStart(cmd *cobra.Command, args []string) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	conn, err := grpc.DialContext(ctx, server, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.DialContext(ctx, address, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		log.Fatalf("fail to dial grpc-server: %s, %v\n", server, err)
+		log.Fatalf("fail to dial grpc-server: %s, %v\n", address, err)
 	}
 	defer conn.Close()
-	log.Printf("connected to %q, timeout: %d, period: %d", server, timeout, period)
+	log.Printf("connected to %q, timeout: %d, period: %d", address, timeout, period)
 
 	client := api.NewSysmonitorClient(conn)
+
+	//если ни одна подсистема показа статистики не включена, то включаем все
+	if !sys && !cpu && !disk && !toptalk && !netstat {
+		sys = true
+		cpu = true
+		disk = true
+		toptalk = true
+		netstat = true
+	}
 
 	sysinfo(client, timeout, period)
 }
@@ -85,11 +105,11 @@ func sysinfo(client api.SysmonitorClient, timeout int32, period int32) {
 		if err != nil {
 			log.Fatalf("error reading from stream: %v", err)
 		}
-		if msg.SystemVal != nil {
+		if sys && msg.SystemVal != nil {
 			t, _ := ptypes.Timestamp(msg.SystemVal.GetQueryTime())
 			fmt.Printf("\nInfoSystem: QueryTime: %s, SystemLoadValue:%v\n", t.In(locZone).Format(layout), msg.SystemVal.SystemLoadValue)
 		}
-		if msg.CpuVal != nil {
+		if cpu && msg.CpuVal != nil {
 			t, _ := ptypes.Timestamp(msg.CpuVal.GetQueryTime())
 			fmt.Printf("\nInfoCPU: QueryTime: %s, UserMode: %v, SystemMode: %v, Idle: %v\n", t.In(locZone).Format(layout),
 				msg.GetCpuVal().GetUserMode(),
@@ -98,7 +118,7 @@ func sysinfo(client api.SysmonitorClient, timeout int32, period int32) {
 			)
 		}
 
-		if msg.DiskVal != nil {
+		if disk && msg.DiskVal != nil {
 			t, _ := ptypes.Timestamp(msg.DiskVal.GetQueryTime())
 			fmt.Printf("\nInfoDisk: QueryTime: %s\n", t.In(locZone).Format(layout))
 
@@ -121,7 +141,7 @@ func sysinfo(client api.SysmonitorClient, timeout int32, period int32) {
 			}
 		}
 
-		if msg.TalkerNetVal != nil {
+		if toptalk && msg.TalkerNetVal != nil {
 			t, _ := ptypes.Timestamp(msg.TalkerNetVal.GetQueryTime())
 			fmt.Printf("\nInfoTalkerNet: QueryTime: %s", t.In(locZone).Format(layout))
 			fmt.Printf("\n%-20v|%-30v  |%-30v", "", "Receive", "Transmit")
@@ -134,7 +154,7 @@ func sysinfo(client api.SysmonitorClient, timeout int32, period int32) {
 			}
 		}
 
-		if msg.NetstatVal != nil {
+		if netstat && msg.NetstatVal != nil {
 			t, _ := ptypes.Timestamp(msg.NetstatVal.GetQueryTime())
 			fmt.Printf("\nInfoNetworkStatistics: QueryTime: %s", t.In(locZone).Format(layout))
 			fmt.Printf("\n%-15v|%10v|%10v|%25v|%20v\n", "State", "Recv", "Send", "LocalAddress", "PeerAddress")
