@@ -10,6 +10,10 @@ before_install:
 
 install: true
 
+notifications:
+    email:
+      on_failure: always
+
 before_script:
     - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $GOPATH/bin v1.25.1
     
