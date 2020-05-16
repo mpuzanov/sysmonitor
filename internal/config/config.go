@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/mpuzanov/sysmonitor/pkg/logger"
@@ -48,25 +47,19 @@ func LoadConfig(filePath string) (*Config, error) {
 	viper.SetDefault("collector.timeout", 5)
 
 	if filePath != "" {
-		fmt.Printf("Parsing config: %s\n", filePath)
 		viper.SetConfigFile(filePath)
 		viper.SetConfigType("yaml")
-		//fmt.Println(viper.ConfigFileUsed())
+
 		err := viper.ReadInConfig()
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		fmt.Println("Config file is not specified.")
 	}
-	//fmt.Println(viper.AllSettings())
 
 	var config Config
 	if err := viper.Unmarshal(&config); err != nil {
 		return nil, err
 	}
-	if config.Log.Level == "debug" {
-		fmt.Printf("config: %+v", config)
-	}
+
 	return &config, nil
 }
