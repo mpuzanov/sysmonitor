@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
+	"github.com/mpuzanov/sysmonitor/pkg/logger"
 	"github.com/mpuzanov/sysmonitor/pkg/sysmonitor/api"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -52,7 +52,7 @@ func init() {
 	GrpcClientCmd.Flags().BoolVarP(&netstat, "netstat", "n", false, "collecting statistics on the network")
 	err := viper.BindPFlags(GrpcClientCmd.Flags())
 	if err != nil {
-		log.Fatal(err)
+		logger.LogSugar.Fatal(err)
 	}
 	viper.AutomaticEnv()
 	address = viper.GetString("address")
@@ -66,10 +66,10 @@ func grpcClientStart(cmd *cobra.Command, args []string) {
 	defer cancel()
 	conn, err := grpc.DialContext(ctx, address, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		log.Fatalf("fail to dial grpc-server: %s, %v\n", address, err)
+		logger.LogSugar.Fatalf("fail to dial grpc-server: %s, %v\n", address, err)
 	}
 	defer conn.Close()
-	log.Printf("connected to %q, timeout: %d, period: %d", address, timeout, period)
+	logger.LogSugar.Infof("connected to %q, timeout: %d, period: %d", address, timeout, period)
 
 	client := api.NewSysmonitorClient(conn)
 
@@ -94,16 +94,16 @@ func sysinfo(client api.SysmonitorClient, timeout int32, period int32) {
 
 	stream, err := client.SysInfo(ctx, req)
 	if err != nil {
-		log.Fatalf("error stream %v", err)
+		logger.LogSugar.Fatalf("error stream %v", err)
 	}
 	for {
 		msg, err := stream.Recv()
 		if err == io.EOF {
-			log.Println("end stream")
+			logger.LogSugar.Info("end stream")
 			return
 		}
 		if err != nil {
-			log.Fatalf("error reading from stream: %v", err)
+			logger.LogSugar.Fatalf("error reading from stream: %v", err)
 		}
 		if sys && msg.SystemVal != nil {
 			t, _ := ptypes.Timestamp(msg.SystemVal.GetQueryTime())

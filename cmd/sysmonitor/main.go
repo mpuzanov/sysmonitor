@@ -1,11 +1,11 @@
 package main
 
 import (
-	"log"
+	"github.com/mpuzanov/sysmonitor/pkg/logger"
 )
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
+		logger.LogSugar.Fatal(err)
 	}
 }
