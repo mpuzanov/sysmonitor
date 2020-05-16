@@ -9,14 +9,18 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-//Logger глобальная переменная для работы
-type Logger *zap.Logger
-
 // LogConf стуктура для настройки логирования
 type LogConf struct {
 	Level      string `yaml:"level" mapstructure:"level"`
 	File       string `yaml:"file" mapstructure:"file"`
 	FormatJSON bool   `yaml:"format_JSON" mapstructure:"format_JSON"`
+}
+
+var LogSugar *zap.SugaredLogger
+
+func init() {
+	// иницилизируем logger по умолчанию
+	LogSugar = zap.NewExample().Sugar()
 }
 
 func getZapLevel(level string) zap.AtomicLevel {
@@ -40,7 +44,7 @@ func syslogTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendString(t.Format("02.01.2006 03:04:05 PM"))
 }
 
-//NewLogger Возвращаем инициализированный логер
+//NewLogger Возвращаем инициализированный Logger
 func NewLogger(config LogConf) *zap.Logger {
 	EncodingFormat := "json"
 	if !config.FormatJSON {
