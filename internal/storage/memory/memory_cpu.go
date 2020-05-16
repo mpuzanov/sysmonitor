@@ -15,18 +15,17 @@ func (s *Store) SaveLoadCPU(data *model.LoadCPU) error {
 }
 
 // GetAvgLoadCPU Возврат среднего значения загрузки системы за period
-func (s *Store) GetAvgLoadCPU(period int32) (*model.LoadCPU, error) {
+func (s *Store) GetAvgLoadCPU(period int32) (model.LoadCPU, error) {
 	s.m.RLock()
 	defer s.m.RUnlock()
 	return avgLoadCPU(s.dbCPU, period)
 }
 
 //avgLoadCPU получить среднее значение показателей за период
-func avgLoadCPU(s []model.LoadCPU, period int32) (*model.LoadCPU, error) {
+func avgLoadCPU(s []model.LoadCPU, period int32) (model.LoadCPU, error) {
 	res := model.LoadCPU{}
 	now := time.Now().Local()
 	timeStart := now.Add(-time.Second * time.Duration(period))
-	//fmt.Println("now:", now, "timeStart", timeStart)
 
 	count := 0
 	for i := len(s) - 1; i >= 0; i-- {
@@ -51,5 +50,5 @@ func avgLoadCPU(s []model.LoadCPU, period int32) (*model.LoadCPU, error) {
 			res.QueryTime = now
 		}
 	}
-	return &res, nil
+	return res, nil
 }

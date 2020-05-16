@@ -15,18 +15,17 @@ func (s *Store) SaveLoadSystem(data *model.LoadSystem) error {
 }
 
 // GetAvgLoadSystem Возврат среднего значения загрузки системы за period
-func (s *Store) GetAvgLoadSystem(period int32) (*model.LoadSystem, error) {
+func (s *Store) GetAvgLoadSystem(period int32) (model.LoadSystem, error) {
 	s.m.RLock()
 	defer s.m.RUnlock()
 	return avgLoadSystem(s.dbSys, period)
 }
 
 //avgLoadSystem получить среднее значение показателей за период
-func avgLoadSystem(s []model.LoadSystem, period int32) (*model.LoadSystem, error) {
+func avgLoadSystem(s []model.LoadSystem, period int32) (model.LoadSystem, error) {
 	res := model.LoadSystem{}
 	now := time.Now().Local()
 	timeStart := now.Add(-time.Second * time.Duration(period))
-	//fmt.Println("now:", now, "timeStart", timeStart)
 
 	count := 0
 	for i := len(s) - 1; i >= 0; i-- {
@@ -47,5 +46,5 @@ func avgLoadSystem(s []model.LoadSystem, period int32) (*model.LoadSystem, error
 			res.QueryTime = now
 		}
 	}
-	return &res, nil
+	return res, nil
 }

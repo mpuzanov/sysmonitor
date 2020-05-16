@@ -15,14 +15,14 @@ func (s *Store) SaveTalkersNet(data *model.TalkersNet) error {
 }
 
 // GetAvgTalkersNet Возврат среднего значения трафика по сетевым интерфейсам за period
-func (s *Store) GetAvgTalkersNet(period int32) (*model.TalkersNet, error) {
+func (s *Store) GetAvgTalkersNet(period int32) (model.TalkersNet, error) {
 	s.m.RLock()
 	defer s.m.RUnlock()
 	return avgTalkersNet(s.dbTalkersNet, period)
 }
 
 //avgTalkersNet получить среднее значение показателей за период
-func avgTalkersNet(s []model.TalkersNet, period int32) (*model.TalkersNet, error) {
+func avgTalkersNet(s []model.TalkersNet, period int32) (model.TalkersNet, error) {
 	res := model.TalkersNet{}
 	sumDevNet := map[string]*model.DeviceNet{}
 
@@ -71,7 +71,7 @@ func avgTalkersNet(s []model.TalkersNet, period int32) (*model.TalkersNet, error
 	}
 	res.QueryTime = now
 
-	return &res, nil
+	return res, nil
 }
 
 // SaveTalkersNet Сохраняем текущую статистику по трафику сети
@@ -83,14 +83,14 @@ func (s *Store) SaveNetworkStatistics(data *model.NetworkStatistics) error {
 }
 
 // GetAvgTalkersNet Возврат среднего значения трафика по сетевым интерфейсам за period
-func (s *Store) GetAvgNetworkStatistics(period int32) (*model.NetworkStatistics, error) {
+func (s *Store) GetAvgNetworkStatistics(period int32) (model.NetworkStatistics, error) {
 	s.m.RLock()
 	defer s.m.RUnlock()
 	return avgNetworkStatistics(s.dbNetStat, period)
 }
 
 // avgNetworkStatistics получить среднее значение показателей за период
-func avgNetworkStatistics(s []model.NetworkStatistics, period int32) (*model.NetworkStatistics, error) {
+func avgNetworkStatistics(s []model.NetworkStatistics, period int32) (model.NetworkStatistics, error) {
 	res := model.NetworkStatistics{}
 	sumNet := map[string]*model.NetStatDetail{}
 
@@ -134,5 +134,5 @@ func avgNetworkStatistics(s []model.NetworkStatistics, period int32) (*model.Net
 	}
 	res.QueryTime = now
 
-	return &res, nil
+	return res, nil
 }

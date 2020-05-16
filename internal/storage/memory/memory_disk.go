@@ -12,8 +12,8 @@ func (s *Store) SaveLoadDisk(data *model.LoadDisk) {
 }
 
 // GetInfoDisk Возвращаем текущую статистику по дискам
-func (s *Store) GetInfoDisk() *model.LoadDisk {
+func (s *Store) GetInfoDisk() model.LoadDisk {
 	s.m.RLock()
 	defer s.m.RUnlock()
-	return &s.dbDisk
+	return s.dbDisk
 }
