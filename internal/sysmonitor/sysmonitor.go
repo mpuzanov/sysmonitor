@@ -5,20 +5,20 @@ import (
 	"time"
 
 	"github.com/mpuzanov/sysmonitor/internal/config"
-	"github.com/mpuzanov/sysmonitor/internal/repository"
+	"github.com/mpuzanov/sysmonitor/internal/storage"
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
 	"go.uber.org/zap"
 )
 
 //Sysmonitor сервис для сбора и выдачи информации по системе
 type Sysmonitor struct {
-	data   repository.Storage
+	data   storage.Storage
 	cfg    *config.Config
 	logger *zap.Logger
 }
 
 // NewSysmonitor - конструктор сервиса
-func NewSysmonitor(repo repository.Storage, conf *config.Config, log *zap.Logger) *Sysmonitor {
+func NewSysmonitor(repo storage.Storage, conf *config.Config, log *zap.Logger) *Sysmonitor {
 	return &Sysmonitor{data: repo, cfg: conf, logger: log}
 }
 
@@ -102,27 +102,27 @@ func (s *Sysmonitor) SaveNetworkStatistics(data *model.NetworkStatistics) error 
 }
 
 // GetAvgLoadSystem возвращаем среднее значение LoadSystem
-func (s *Sysmonitor) GetAvgLoadSystem(period int32) (*model.LoadSystem, error) {
+func (s *Sysmonitor) GetAvgLoadSystem(period int32) (model.LoadSystem, error) {
 	return s.data.GetAvgLoadSystem(period)
 }
 
 // GetAvgLoadCPU возвращаем среднее значение LoadCPU
-func (s *Sysmonitor) GetAvgLoadCPU(period int32) (*model.LoadCPU, error) {
+func (s *Sysmonitor) GetAvgLoadCPU(period int32) (model.LoadCPU, error) {
 	return s.data.GetAvgLoadCPU(period)
 }
 
 // GetAvgTalkersNet возвращаем среднее значение
-func (s *Sysmonitor) GetAvgTalkersNet(period int32) (*model.TalkersNet, error) {
+func (s *Sysmonitor) GetAvgTalkersNet(period int32) (model.TalkersNet, error) {
 	return s.data.GetAvgTalkersNet(period)
 }
 
 // GetAvgNetworkStatistics возвращаем среднее значение
-func (s *Sysmonitor) GetAvgNetworkStatistics(period int32) (*model.NetworkStatistics, error) {
+func (s *Sysmonitor) GetAvgNetworkStatistics(period int32) (model.NetworkStatistics, error) {
 	return s.data.GetAvgNetworkStatistics(period)
 }
 
 // GetInfoDisk возвращаем информацию по дискам
-func (s *Sysmonitor) GetInfoDisk() *model.LoadDisk {
+func (s *Sysmonitor) GetInfoDisk() model.LoadDisk {
 	return s.data.GetInfoDisk()
 }
 
