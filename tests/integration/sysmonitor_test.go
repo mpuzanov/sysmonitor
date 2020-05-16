@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/cucumber/godog"
+	"github.com/mpuzanov/sysmonitor/pkg/logger"
 	"github.com/mpuzanov/sysmonitor/pkg/sysmonitor/api"
 	"google.golang.org/grpc"
 )
@@ -33,19 +33,20 @@ type testSysmonitor struct {
 }
 
 func init() {
+
 	if grpcListen == "" {
 		grpcListen = "localhost:50051"
 	}
 	if timeoutIn != "" {
 		timeout, err = strconv.Atoi(timeoutIn)
 		if err != nil {
-			log.Fatal(err)
+			logger.LogSugar.Fatal(err)
 		}
 	}
 	if periodIn != "" {
 		period, err = strconv.Atoi(periodIn)
 		if err != nil {
-			log.Fatal(err)
+			logger.LogSugar.Fatal(err)
 		}
 	}
 }
@@ -59,7 +60,7 @@ func (t *testSysmonitor) startSuite() {
 
 	t.conn, err = grpc.DialContext(ctx, grpcListen, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		log.Fatalf("fail to dial : %s, %v", grpcListen, err)
+		logger.LogSugar.Fatalf("fail to dial : %s, %v", grpcListen, err)
 	}
 	t.client = api.NewSysmonitorClient(t.conn)
 }

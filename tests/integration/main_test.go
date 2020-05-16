@@ -1,7 +1,6 @@
 package integration
 
 import (
-	"log"
 	"os"
 	"testing"
 	"time"
@@ -11,7 +10,6 @@ import (
 
 func TestMain(m *testing.M) {
 	delay := 10 * time.Second
-	log.Printf("wait %s for service availability...", delay)
 	time.Sleep(delay)
 
 	status := godog.RunWithOptions("integration", func(s *godog.Suite) {
