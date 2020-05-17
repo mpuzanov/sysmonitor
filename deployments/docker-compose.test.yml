@@ -7,7 +7,7 @@ services:
       container_name: sysmonitor_api
       build:
         context: ../.
-        dockerfile: ./deployments/docker/server.Dockerfile    
+        dockerfile: ./deployments/docker/server_build.Dockerfile    
       environment:
         TZ: Europe/Samara 
       ports:
