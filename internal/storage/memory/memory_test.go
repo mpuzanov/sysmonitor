@@ -89,7 +89,7 @@ func TestAvgTalkersNet(t *testing.T) {
 		desc   string
 		sl     []model.TalkersNet
 		period int32
-		want   *model.TalkersNet
+		want   model.TalkersNet
 	}{
 		{
 			desc: "test 1",
@@ -110,7 +110,7 @@ func TestAvgTalkersNet(t *testing.T) {
 				},
 			},
 			period: 15,
-			want: &model.TalkersNet{
+			want: model.TalkersNet{
 				DevNet: []model.DeviceNet{
 					{NetInterface: "enp0s8", Receive: model.DevNetDetail{Bytes: 750}},
 					{NetInterface: "lo", Receive: model.DevNetDetail{Bytes: 150}},
@@ -125,6 +125,7 @@ func TestAvgTalkersNet(t *testing.T) {
 			assert.Empty(t, err)
 			assert.NotEmpty(t, got)
 			assert.Equal(t, tC.want.DevNet[0].Receive.Bytes, got.DevNet[0].Receive.Bytes)
+			assert.Equal(t, tC.want.DevNet[1].Receive.Bytes, got.DevNet[1].Receive.Bytes)
 		})
 	}
 }
@@ -134,7 +135,7 @@ func TestAvgNetworkStatistics(t *testing.T) {
 		desc   string
 		sl     []model.NetworkStatistics
 		period int32
-		want   *model.NetworkStatistics
+		want   model.NetworkStatistics
 	}{
 		{
 			desc: "test 1",
@@ -155,7 +156,7 @@ func TestAvgNetworkStatistics(t *testing.T) {
 				},
 			},
 			period: 15,
-			want: &model.NetworkStatistics{
+			want: model.NetworkStatistics{
 				StatNet: []model.NetStatDetail{
 					{LocalAddress: "127.0.0.1:ipp  ", Recv: 0, Send: 192},
 					{LocalAddress: "10.0.3.15:47704", Recv: 717, Send: 0},

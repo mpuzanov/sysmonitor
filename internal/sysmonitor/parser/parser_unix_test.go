@@ -31,7 +31,7 @@ func TestParserSystemLoad(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			got, err := parser.ParserSystemLoad(tC.in)
+			got, err := parser.SystemLoad(tC.in)
 			assert.Empty(t, err)
 			assert.Equal(t, tC.want, got.SystemLoadValue)
 		})
@@ -67,7 +67,7 @@ func TestParserLoadCPU(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			got, err := parser.ParserLoadCPU(tC.in)
+			got, err := parser.LoadCPU(tC.in)
 			//assert.Empty(t, err)
 			assert.Equal(t, tC.err, err)
 			if err == nil {
