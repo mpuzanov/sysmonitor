@@ -108,78 +108,15 @@ func (s *GRPCServer) SysInfo(req *api.Request, stream api.Sysmonitor_SysInfoServ
 		d := time.Duration(int64(time.Second) * int64(req.Timeout))
 		select {
 		case <-time.After(d):
-			dataSend := api.Result{}
 
-			// если подсистема load_system включена
-			if s.cfg.Collector.Category.LoadSystem {
-				data, err := s.sysmon.GetAvgLoadSystem(req.Period)
-				if err != nil {
-					s.logger.Error("GetAvgLoadSystem", zap.Error(err))
-					return err
-				}
-				dataSend.SystemVal = &api.SystemResponse{
-					QueryTime:       ptypes.TimestampNow(),
-					SystemLoadValue: data.SystemLoadValue}
+			// подготавливаем информацию для отправки клиенту
+			dataSend, err := s.fillDataToProto(req.Period)
+			if err != nil {
+				return err
 			}
-			// если подсистема LoadCPU включена
-			if s.cfg.Collector.Category.LoadCPU {
-				data, err := s.sysmon.GetAvgLoadCPU(req.Period)
-				if err != nil {
-					s.logger.Error("GetAvgLoadCPU", zap.Error(err))
-					return err
-				}
-				queryTimeProto, err := ptypes.TimestampProto(data.QueryTime)
-				if err != nil {
-					s.logger.Error("convert QueryTime", zap.Error(err))
-					return err
-				}
-				dataSend.CpuVal = &api.CPUResponse{
-					QueryTime:  queryTimeProto,
-					UserMode:   data.UserMode,
-					SystemMode: data.SystemMode,
-					Idle:       data.Idle,
-				}
-			}
-			// если подсистема LoadDisk включена
-			if s.cfg.Collector.Category.LoadDisk {
-				data := s.sysmon.GetInfoDisk()
-				valueProto, err := ParserLoadDiskToProto(&data)
-				if err != nil {
-					s.logger.Error("ParserLoadDiskToProto", zap.Error(err))
-					return err
-				}
-				dataSend.DiskVal = valueProto
-			}
-			// если подсистема TopTalkers включена
-			if s.cfg.Collector.Category.TopTalkers {
-				data, err := s.sysmon.GetAvgTalkersNet(req.Period)
-				if err != nil {
-					s.logger.Error("GetAvgTalkersNet", zap.Error(err))
-					return err
-				}
-				valueProto, err := ParserTalkerNetToProto(&data)
-				if err != nil {
-					s.logger.Error("ParserTalkerNetToProto", zap.Error(err))
-					return err
-				}
-				dataSend.TalkerNetVal = valueProto
-			}
-			// если подсистема NetworkStat включена
-			if s.cfg.Collector.Category.NetworkStat {
-				data, err := s.sysmon.GetAvgNetworkStatistics(req.Period)
-				if err != nil {
-					s.logger.Error("GetAvgNetworkStatistics", zap.Error(err))
-					return err
-				}
-				valueProto, err := ParserNetworkStatisticsToProto(&data)
-				if err != nil {
-					s.logger.Error("ParserNetworkStatisticsToProto", zap.Error(err))
-					return err
-				}
-				dataSend.NetstatVal = valueProto
-			}
+
 			// отправляем клиенту информацию
-			err := stream.Send(&dataSend)
+			err = stream.Send(dataSend)
 			if err != nil {
 				return err
 			}
@@ -193,5 +130,80 @@ func (s *GRPCServer) SysInfo(req *api.Request, stream api.Sysmonitor_SysInfoServ
 			return nil
 		}
 	}
+}
 
+// fillDataToProto подготавливаем информацию для отправки клиенту
+func (s *GRPCServer) fillDataToProto(period int32) (*api.Result, error) {
+	dataSend := api.Result{}
+
+	// если подсистема load_system включена
+	if s.cfg.Collector.Category.LoadSystem {
+		data, err := s.sysmon.GetAvgLoadSystem(period)
+		if err != nil {
+			s.logger.Error("GetAvgLoadSystem", zap.Error(err))
+			return &dataSend, err
+		}
+		dataSend.SystemVal = &api.SystemResponse{
+			QueryTime:       ptypes.TimestampNow(),
+			SystemLoadValue: data.SystemLoadValue}
+	}
+	// если подсистема LoadCPU включена
+	if s.cfg.Collector.Category.LoadCPU {
+		data, err := s.sysmon.GetAvgLoadCPU(period)
+		if err != nil {
+			s.logger.Error("GetAvgLoadCPU", zap.Error(err))
+			return &dataSend, err
+		}
+		queryTimeProto, err := ptypes.TimestampProto(data.QueryTime)
+		if err != nil {
+			s.logger.Error("convert QueryTime", zap.Error(err))
+			return &dataSend, err
+		}
+		dataSend.CpuVal = &api.CPUResponse{
+			QueryTime:  queryTimeProto,
+			UserMode:   data.UserMode,
+			SystemMode: data.SystemMode,
+			Idle:       data.Idle,
+		}
+	}
+	// если подсистема LoadDisk включена
+	if s.cfg.Collector.Category.LoadDisk {
+		data := s.sysmon.GetInfoDisk()
+		valueProto, err := ParserLoadDiskToProto(&data)
+		if err != nil {
+			s.logger.Error("ParserLoadDiskToProto", zap.Error(err))
+			return &dataSend, err
+		}
+		dataSend.DiskVal = valueProto
+	}
+	// если подсистема TopTalkers включена
+	if s.cfg.Collector.Category.TopTalkers {
+		data, err := s.sysmon.GetAvgTalkersNet(period)
+		if err != nil {
+			s.logger.Error("GetAvgTalkersNet", zap.Error(err))
+			return &dataSend, err
+		}
+		valueProto, err := ParserTalkerNetToProto(&data)
+		if err != nil {
+			s.logger.Error("ParserTalkerNetToProto", zap.Error(err))
+			return &dataSend, err
+		}
+		dataSend.TalkerNetVal = valueProto
+	}
+	// если подсистема NetworkStat включена
+	if s.cfg.Collector.Category.NetworkStat {
+		data, err := s.sysmon.GetAvgNetworkStatistics(period)
+		if err != nil {
+			s.logger.Error("GetAvgNetworkStatistics", zap.Error(err))
+			return &dataSend, err
+		}
+		valueProto, err := ParserNetworkStatisticsToProto(&data)
+		if err != nil {
+			s.logger.Error("ParserNetworkStatisticsToProto", zap.Error(err))
+			return &dataSend, err
+		}
+		dataSend.NetstatVal = valueProto
+	}
+
+	return &dataSend, nil
 }
