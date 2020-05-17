@@ -63,11 +63,13 @@ type DevNetDetail struct {
 	Errs    int
 }
 
+// NetworkStatistics статистика сетевых соединений
 type NetworkStatistics struct {
 	QueryTime time.Time
 	StatNet   []NetStatDetail
 }
 
+// NetStatDetail детализованная информация
 type NetStatDetail struct {
 	State        string
 	Recv         int
