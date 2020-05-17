@@ -54,7 +54,7 @@ tmpfs            254407      29   254378    1% /run/user/1000
 	}
 )
 
-func TestParserLoadDiskDevice(t *testing.T) {
+func TestLoadDiskDevice(t *testing.T) {
 	testCases := []struct {
 		desc string
 		in   string
@@ -70,10 +70,12 @@ func TestParserLoadDiskDevice(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			got, err := parser.ParserLoadDiskDevice(tC.in)
+			got, err := parser.LoadDiskDevice(tC.in)
 			assert.Equal(t, tC.err, err)
 			if err == nil {
+				assert.NotEmpty(t, got)
 				assert.Equal(t, len(tC.want), len(got))
+				assert.Equal(t, tC.want[0].Tps, got[0].Tps)
 			}
 		})
 	}
@@ -101,10 +103,13 @@ func TestParserLoadDiskFS(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			got, err := parser.ParserLoadDiskFS(tC.in)
+			got, err := parser.LoadDiskFS(tC.in)
 			assert.Equal(t, tC.err, err)
 			if err == nil {
+				assert.NotEmpty(t, got)
 				assert.Equal(t, len(tC.want), len(got))
+				assert.Equal(t, tC.want["/"].Used, got["/"].Used)
+				assert.Equal(t, tC.want["/dev/shm"].Available, got["/dev/shm"].Available)
 			}
 		})
 	}

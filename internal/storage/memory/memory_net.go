@@ -1,6 +1,7 @@
 package memory
 
 import (
+	"sort"
 	"time"
 
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
@@ -70,11 +71,14 @@ func avgTalkersNet(s []model.TalkersNet, period int32) (model.TalkersNet, error)
 		}
 	}
 	res.QueryTime = now
-
+	// сортируем таблицы по убыванию
+	sort.Slice(res.DevNet, func(i, j int) bool {
+		return res.DevNet[i].Receive.Bytes > res.DevNet[j].Receive.Bytes
+	})
 	return res, nil
 }
 
-// SaveTalkersNet Сохраняем текущую статистику по трафику сети
+// SaveNetworkStatistics Сохраняем текущую статистику по трафику сети
 func (s *Store) SaveNetworkStatistics(data *model.NetworkStatistics) error {
 	s.m.Lock()
 	defer s.m.Unlock()
@@ -82,7 +86,7 @@ func (s *Store) SaveNetworkStatistics(data *model.NetworkStatistics) error {
 	return nil
 }
 
-// GetAvgTalkersNet Возврат среднего значения трафика по сетевым интерфейсам за period
+// GetAvgNetworkStatistics Возврат среднего значения трафика по сетевым интерфейсам за period
 func (s *Store) GetAvgNetworkStatistics(period int32) (model.NetworkStatistics, error) {
 	s.m.RLock()
 	defer s.m.RUnlock()
@@ -134,5 +138,9 @@ func avgNetworkStatistics(s []model.NetworkStatistics, period int32) (model.Netw
 	}
 	res.QueryTime = now
 
+	// сортируем таблицы по убыванию
+	sort.Slice(res.StatNet, func(i, j int) bool {
+		return res.StatNet[i].Send > res.StatNet[j].Send
+	})
 	return res, nil
 }

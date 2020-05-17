@@ -17,7 +17,7 @@ func QueryInfoSystem() (model.LoadSystem, error) {
 	if exitCode != 0 {
 		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunReadInfoSystem)
 	}
-	res, err := parser.ParserSystemLoad(txt)
+	res, err := parser.SystemLoad(txt)
 	if err != nil {
 		return res, fmt.Errorf("%s. %w", errors.ErrParserReadInfoSystem, err)
 	}
@@ -31,7 +31,7 @@ func QueryInfoCPU() (model.LoadCPU, error) {
 	if exitCode != 0 {
 		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunReadInfoCPU)
 	}
-	res, err := parser.ParserLoadCPU(txt)
+	res, err := parser.LoadCPU(txt)
 	if err != nil {
 		return res, fmt.Errorf("%s. %w", errors.ErrParserReadInfoCPU, err)
 	}
@@ -46,7 +46,7 @@ func QueryInfoDisk() (model.LoadDisk, error) {
 	if exitCode != 0 {
 		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunLoadDiskDevice)
 	}
-	resIO, err := parser.ParserLoadDiskDevice(txt)
+	resIO, err := parser.LoadDiskDevice(txt)
 	if err != nil {
 		return res, fmt.Errorf("%s. %w", errors.ErrParserLoadDiskDevice, err)
 	}
@@ -55,7 +55,7 @@ func QueryInfoDisk() (model.LoadDisk, error) {
 	if exitCode != 0 {
 		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunLoadDiskFS)
 	}
-	resFS, err := parser.ParserLoadDiskFS(txt)
+	resFS, err := parser.LoadDiskFS(txt)
 	if err != nil {
 		return res, fmt.Errorf("%s. %w", errors.ErrParserLoadDiskFS, err)
 	}
@@ -63,7 +63,7 @@ func QueryInfoDisk() (model.LoadDisk, error) {
 	if exitCode != 0 {
 		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunLoadDiskFSInode)
 	}
-	resFSInode, err := parser.ParserLoadDiskFS(txt)
+	resFSInode, err := parser.LoadDiskFS(txt)
 	if err != nil {
 		return res, fmt.Errorf("%s. %w", errors.ErrParserLoadDiskFSInode, err)
 	}
@@ -71,6 +71,7 @@ func QueryInfoDisk() (model.LoadDisk, error) {
 	res.FS = resFS
 	res.FSInode = resFSInode
 	res.QueryTime = time.Now()
+
 	return res, nil
 }
 
@@ -82,7 +83,7 @@ func QueryInfoTalkersNet() (model.TalkersNet, error) {
 	if exitCode != 0 {
 		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunDeviceNet)
 	}
-	resDevNet, err := parser.ParserDeviceNet(txt)
+	resDevNet, err := parser.DeviceNet(txt)
 	if err != nil {
 		return res, fmt.Errorf("%s. %w", errors.ErrParserDeviceNet, err)
 	}
@@ -101,7 +102,7 @@ func QueryInfoNetworkStatistics() (model.NetworkStatistics, error) {
 	if exitCode != 0 {
 		return res, fmt.Errorf("%s. %s", outerror, errors.ErrRunNetworkStatistics)
 	}
-	resNet, err := parser.ParserNetworkStatistics(txt)
+	resNet, err := parser.NetworkStatistics(txt)
 	if err != nil {
 		return res, fmt.Errorf("%s. %w", errors.ErrParserNetworkStatistics, err)
 	}

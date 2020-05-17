@@ -24,8 +24,8 @@ func init() {
 	regexpLoadCPU = regexp.MustCompile(patternLoadCPU)
 }
 
-// ParserSystemLoad Выдаёт значение загрузки системы из строки с общей информацией
-func ParserSystemLoad(in string) (model.LoadSystem, error) {
+// SystemLoad Выдаёт значение загрузки системы из строки с общей информацией
+func SystemLoad(in string) (model.LoadSystem, error) {
 	//top - 19:30:09 up  4:30,  1 user,  load average: 1,02, 0,95, 0,80
 	var res model.LoadSystem
 	idx := strings.LastIndex(in, ":")
@@ -41,8 +41,8 @@ func ParserSystemLoad(in string) (model.LoadSystem, error) {
 	return res, nil
 }
 
-// ParserLoadCPU Выдаёт значение загрузки системы из строки с общей информацией
-func ParserLoadCPU(in string) (model.LoadCPU, error) {
+// LoadCPU Выдаёт значение загрузки системы из строки с общей информацией
+func LoadCPU(in string) (model.LoadCPU, error) {
 	//%Cpu(s):  1,3 us,  0,6 sy,  0,0 ni, 96,7 id,  1,3 wa,  0,0 hi,  0,1 si,  0,0 st
 	var res model.LoadCPU
 	var err error
@@ -84,8 +84,8 @@ func ParserLoadCPU(in string) (model.LoadCPU, error) {
 	return res, nil
 }
 
-// ParserLoadDiskDevice анализируем результаты команды iostat -d -k
-func ParserLoadDiskDevice(in string) ([]model.DiskIO, error) {
+// LoadDiskDevice анализируем результаты команды iostat -d -k
+func LoadDiskDevice(in string) ([]model.DiskIO, error) {
 	var (
 		res = []model.DiskIO{}
 		v   model.DiskIO
@@ -136,8 +136,8 @@ func ParserLoadDiskDevice(in string) ([]model.DiskIO, error) {
 	return res, nil
 }
 
-// ParserLoadDiskFS анализируем результаты команды df -k   df -i
-func ParserLoadDiskFS(in string) (map[string]model.DiskFS, error) {
+// LoadDiskFS анализируем результаты команды df -k   df -i
+func LoadDiskFS(in string) (map[string]model.DiskFS, error) {
 	var (
 		res = map[string]model.DiskFS{}
 		v   model.DiskFS
@@ -179,8 +179,8 @@ func ParserLoadDiskFS(in string) (map[string]model.DiskFS, error) {
 	return res, nil
 }
 
-// ParserDeviceNet анализируем результаты команды cat /proc/net/dev
-func ParserDeviceNet(in string) ([]model.DeviceNet, error) {
+// DeviceNet анализируем результаты команды cat /proc/net/dev
+func DeviceNet(in string) ([]model.DeviceNet, error) {
 	var (
 		res = []model.DeviceNet{}
 		v   model.DeviceNet
@@ -233,8 +233,8 @@ func ParserDeviceNet(in string) ([]model.DeviceNet, error) {
 	return res, nil
 }
 
-// ParserNetworkStatistics анализируем результаты команды: ss -ta
-func ParserNetworkStatistics(in string) ([]model.NetStatDetail, error) {
+// NetworkStatistics анализируем результаты команды: ss -ta
+func NetworkStatistics(in string) ([]model.NetStatDetail, error) {
 	var (
 		res = []model.NetStatDetail{}
 		v   model.NetStatDetail

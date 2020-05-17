@@ -66,7 +66,7 @@ func grpcClientStart(cmd *cobra.Command, args []string) {
 	defer cancel()
 	conn, err := grpc.DialContext(ctx, address, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		logger.LogSugar.Fatalf("fail to dial grpc-server: %s, %v\n", address, err)
+		logger.LogSugar.Fatalf("fail to dial grpc-server: %s, %v", address, err)
 	}
 	defer conn.Close()
 	logger.LogSugar.Infof("connected to %q, timeout: %d, period: %d", address, timeout, period)
