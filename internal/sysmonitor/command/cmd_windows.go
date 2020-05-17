@@ -3,7 +3,9 @@
 package command
 
 import (
+	"math/rand"
 	"strconv"
+	"time"
 
 	"github.com/mpuzanov/sysmonitor/internal/rand"
 )
@@ -14,7 +16,7 @@ func RunSystemLoad() (int, string, string) {
 	var output, stderr string
 
 	// формируем случайное значение
-	val := rand.RandFloats(1, 2)
+	val := randFloats(1, 2)
 
 	output = strconv.FormatFloat(val, 'g', 4, 64)
 	stderr = ""
@@ -31,4 +33,11 @@ func RunLoadCPU() (int, string, string) {
 	stderr = ""
 
 	return 0, output, stderr
+}
+
+// randFloats случайное значение из диапазона
+func randFloats(min, max float64) float64 {
+	rand.Seed(time.Now().UnixNano())
+	r := min + rand.Float64()*(max-min)
+	return r
 }

@@ -8,8 +8,7 @@ import (
 	"github.com/mpuzanov/sysmonitor/pkg/sysmonitor/api"
 )
 
-// ParserLoadDiskToProto .
-func ParserLoadDiskToProto(data *model.LoadDisk) (*api.DiskResponse, error) {
+func parserLoadDiskToProto(data *model.LoadDisk) (*api.DiskResponse, error) {
 	var res api.DiskResponse
 
 	queryTimeProto, err := ptypes.TimestampProto(data.QueryTime)
@@ -57,8 +56,7 @@ func ParserLoadDiskToProto(data *model.LoadDisk) (*api.DiskResponse, error) {
 	return &res, nil
 }
 
-// ParserTalkerNetToProto .
-func ParserTalkerNetToProto(data *model.TalkersNet) (*api.TalkersNetResponse, error) {
+func parserTalkerNetToProto(data *model.TalkersNet) (*api.TalkersNetResponse, error) {
 	var res api.TalkersNetResponse
 
 	queryTimeProto, err := ptypes.TimestampProto(data.QueryTime)
@@ -80,15 +78,11 @@ func ParserTalkerNetToProto(data *model.TalkersNet) (*api.TalkersNetResponse, er
 
 		res.Devnet = append(res.Devnet, &vProto)
 	}
-	// сортируем таблицы по убыванию
-	sort.Slice(res.Devnet, func(i, j int) bool {
-		return res.Devnet[i].ReceiveBytes > res.Devnet[j].ReceiveBytes
-	})
+
 	return &res, nil
 }
 
-// ParserNetworkStatisticsToProto .
-func ParserNetworkStatisticsToProto(data *model.NetworkStatistics) (*api.NetworkStatisticsResponse, error) {
+func parserNetworkStatisticsToProto(data *model.NetworkStatistics) (*api.NetworkStatisticsResponse, error) {
 	var res api.NetworkStatisticsResponse
 
 	queryTimeProto, err := ptypes.TimestampProto(data.QueryTime)
@@ -108,9 +102,6 @@ func ParserNetworkStatisticsToProto(data *model.NetworkStatistics) (*api.Network
 
 		res.Netstat = append(res.Netstat, &vProto)
 	}
-	// сортируем таблицы по убыванию
-	sort.Slice(res.Netstat, func(i, j int) bool {
-		return res.Netstat[i].Send > res.Netstat[j].Send
-	})
+
 	return &res, nil
 }

@@ -104,9 +104,8 @@ loop:
 				}
 				if t.response == nil {
 					return fmt.Errorf("error query info")
-				} else {
-					count++
 				}
+				count++
 			}
 		}
 	}

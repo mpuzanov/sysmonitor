@@ -4,10 +4,11 @@ import (
 	"context"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/mpuzanov/sysmonitor/internal/config"
 	"github.com/mpuzanov/sysmonitor/internal/storage"
 	"github.com/mpuzanov/sysmonitor/internal/sysmonitor/domain/model"
-	"go.uber.org/zap"
 )
 
 //Sysmonitor сервис для сбора и выдачи информации по системе

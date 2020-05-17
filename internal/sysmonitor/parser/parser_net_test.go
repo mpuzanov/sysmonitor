@@ -63,7 +63,7 @@ func TestParserDeviceNet(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			got, err := parser.ParserDeviceNet(tC.in)
+			got, err := parser.DeviceNet(tC.in)
 			assert.Equal(t, tC.err, err)
 			if err == nil {
 				assert.Equal(t, len(tC.want), len(got))
@@ -89,7 +89,7 @@ func TestParserNetworkStatistics(t *testing.T) {
 	}
 	for _, tC := range testCases {
 		t.Run(tC.desc, func(t *testing.T) {
-			got, err := parser.ParserNetworkStatistics(tC.in)
+			got, err := parser.NetworkStatistics(tC.in)
 			assert.Equal(t, tC.err, err)
 			if err == nil {
 				assert.Equal(t, len(tC.want), len(got))

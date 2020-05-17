@@ -169,9 +169,9 @@ func (s *GRPCServer) fillDataToProto(period int32) (*api.Result, error) {
 	// если подсистема LoadDisk включена
 	if s.cfg.Collector.Category.LoadDisk {
 		data := s.sysmon.GetInfoDisk()
-		valueProto, err := ParserLoadDiskToProto(&data)
+		valueProto, err := parserLoadDiskToProto(&data)
 		if err != nil {
-			s.logger.Error("ParserLoadDiskToProto", zap.Error(err))
+			s.logger.Error("parserLoadDiskToProto", zap.Error(err))
 			return &dataSend, err
 		}
 		dataSend.DiskVal = valueProto
@@ -183,9 +183,9 @@ func (s *GRPCServer) fillDataToProto(period int32) (*api.Result, error) {
 			s.logger.Error("GetAvgTalkersNet", zap.Error(err))
 			return &dataSend, err
 		}
-		valueProto, err := ParserTalkerNetToProto(&data)
+		valueProto, err := parserTalkerNetToProto(&data)
 		if err != nil {
-			s.logger.Error("ParserTalkerNetToProto", zap.Error(err))
+			s.logger.Error("parserTalkerNetToProto", zap.Error(err))
 			return &dataSend, err
 		}
 		dataSend.TalkerNetVal = valueProto
@@ -197,9 +197,9 @@ func (s *GRPCServer) fillDataToProto(period int32) (*api.Result, error) {
 			s.logger.Error("GetAvgNetworkStatistics", zap.Error(err))
 			return &dataSend, err
 		}
-		valueProto, err := ParserNetworkStatisticsToProto(&data)
+		valueProto, err := parserNetworkStatisticsToProto(&data)
 		if err != nil {
-			s.logger.Error("ParserNetworkStatisticsToProto", zap.Error(err))
+			s.logger.Error("parserNetworkStatisticsToProto", zap.Error(err))
 			return &dataSend, err
 		}
 		dataSend.NetstatVal = valueProto
