@@ -16,6 +16,7 @@ type LogConf struct {
 	FormatJSON bool   `yaml:"format_JSON" mapstructure:"format_JSON"`
 }
 
+// LogSugar logger по умолчанию
 var LogSugar *zap.SugaredLogger
 
 func init() {
