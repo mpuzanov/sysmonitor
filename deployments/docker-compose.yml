@@ -30,7 +30,7 @@ services:
         context: ../.
         dockerfile: ./deployments/docker/client.Dockerfile        
       environment:
-        SERVER: "sysmonitor_api:50051"
+        ADDRESS: "sysmonitor_api:50051"
         TIMEOUT: 10
         PERIOD: 16
         TZ: Europe/Samara
